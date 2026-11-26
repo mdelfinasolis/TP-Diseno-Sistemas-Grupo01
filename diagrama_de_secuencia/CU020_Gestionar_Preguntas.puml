@@ -36,7 +36,7 @@ end note
 ' NUEVA PREGUNTA SIN BÚSQUEDA PREVIA
 ' =====================================================
 
-alt [actor presiona Nuevo]
+alt actor presiona Nuevo
 
     Consultor -> Pantalla: nuevo()
 
@@ -46,9 +46,9 @@ alt [actor presiona Nuevo]
 
     Pantalla --> Consultor: volver a criterios de búsqueda
 
-else [actor realiza una búsqueda]
+else actor realiza una búsqueda
 
-    opt [actor selecciona una competencia]
+    opt actor selecciona una competencia
         Consultor -> Pantalla: seleccionarCompetencia(codigoCompetencia)
         Pantalla -> GF: buscarFactores(filtros: FiltroFactorEntradaDTO)
         activate GF
@@ -84,7 +84,7 @@ else [actor realiza una búsqueda]
 
     Consultor -> Pantalla: seleccionar(pregunta)
 
-    alt [actor presiona Modificar]
+    alt actor presiona Modificar
 
         Consultor -> Pantalla: modificar()
 
@@ -106,7 +106,7 @@ else [actor realiza una búsqueda]
 
         Pantalla --> Consultor: actualizar grilla
 
-    else [actor presiona Eliminar]
+    else actor presiona Eliminar
 
         Consultor -> Pantalla: eliminar()
 

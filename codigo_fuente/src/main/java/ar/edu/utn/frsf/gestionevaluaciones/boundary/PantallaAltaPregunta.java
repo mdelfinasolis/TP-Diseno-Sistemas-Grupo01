@@ -48,9 +48,6 @@ public class PantallaAltaPregunta {
     private final GestorFactores gestorFactores;
     private final GestorOpcionesRespuesta gestorOpcionesRespuesta;
 
-    @Value("${app.consultor.nombre}")
-    private String nombreConsultor;
-
     public PantallaAltaPregunta(GestorPreguntas gestorPreguntas, GestorCompetencias gestorCompetencias,
                                 GestorFactores gestorFactores, GestorOpcionesRespuesta gestorOpcionesRespuesta) {
         this.gestorPreguntas = gestorPreguntas;
@@ -68,11 +65,6 @@ public class PantallaAltaPregunta {
                 setValue(texto == null || texto.isBlank() ? null : texto.trim().toUpperCase(Locale.ROOT));
             }
         });
-    }
-
-    @ModelAttribute("nombreConsultor")
-    public String nombreConsultor() {
-        return nombreConsultor;
     }
 
     /** Paso 1: pantalla de alta con las listas de competencias y opciones de respuesta. */

@@ -1,0 +1,209 @@
+@startuml
+title CU001 - Autenticar Usuario
+
+autonumber
+
+actor "Usuario No Autenticado" as Usuario
+boundary "PantallaAutenticacion" as Pantalla
+control "GestorAutenticacion" as GA
+control "GestorCandidatos" as GC
+database "CandidatoDAO" as CDAO
+participant "Servidor LDAP\nde la organización" as LDAP
+entity "Candidato" as Cand
+entity "Cuestionario" as Cu
+entity "DetalleCuestionario" as Det
+entity "Consultor" as Cons
+boundary "PantallaMenuPrincipal" as Menu
+boundary "PantallaCompletarCuestionario" as PCC
+
+' =====================================================
+' PASOS 1 Y 2: SELECCIÓN DEL TIPO DE ACCESO
+' =====================================================
+
+Usuario -> Pantalla : seleccionarTipoAcceso()
+activate Pantalla
+
+Pantalla --> Usuario : opciones de acceso:\n- Ingresar como usuario consultor\n- Realizar cuestionario
+
+note over Usuario, Pantalla
+En cualquier flujo el actor puede presionar Salir
+(salir()) o volver a seleccionar el tipo de acceso
+(Observaciones del CU001).
+end note
+
+alt paso 3 - actor selecciona "Ingresar como usuario consultor"
+
+    ' =================================================
+    ' PASOS 4 A 6: CONSULTOR (LDAP)
+    ' =================================================
+
+    Pantalla --> Usuario : solicita nombre de usuario y contraseña
+
+    note right of Pantalla
+    Requerimientos especiales:
+    - identificador SIEMPRE en mayúsculas (máx. 15)
+    - contraseña con asteriscos (máx. 20)
+    end note
+
+    Usuario -> Pantalla : ingresarCredenciales()
+
+    Pantalla -> GA : autenticarConsultor(datos: LoginConsultorEntradaDTO)
+    activate GA
+
+    GA -> GA : validarLDAP(datos) : boolean
+    GA -> LDAP : autenticación (bind) con usuario y contraseña
+    activate LDAP
+    LDAP --> GA : resultado
+    deactivate LDAP
+
+    alt 5.A - el usuario o la contraseña son inválidos
+
+        GA --> Pantalla : SesionConsultorDTO(valido = false)
+
+        Pantalla -> Pantalla : mostrarError("El usuario o la contraseña no son válidos")
+        Usuario -> Pantalla : cerrar mensaje de error
+        Pantalla -> Pantalla : blanquearCampos()
+
+        note right of Pantalla
+        5.A.4: el CU continúa en el paso 4.
+        end note
+
+    else usuario y contraseña válidos
+
+        GA -> LDAP : consulta de nombre y apellido del usuario
+        activate LDAP
+        LDAP --> GA : atributos del usuario
+        deactivate LDAP
+
+        create Cons
+        GA -> Cons : <<create>>\nConsultor(nombreUsuario, nombre, apellido)
+
+        note right of Cons
+        Los datos del consultor salen del LDAP:
+        la contraseña no se guarda en el sistema.
+        end note
+
+        GA --> Pantalla : SesionConsultorDTO(nombreUsuario, nombre,\napellido, valido = true)
+        deactivate GA
+
+        Pantalla -> Pantalla : iniciarSesion(sesion: SesionConsultorDTO)
+
+        Pantalla -> Menu : mostrarMenu()
+        activate Menu
+        Menu --> Usuario : pantalla principal con las opciones\ndel perfil Consultor (paso 6)
+        deactivate Menu
+
+    end
+
+else 3.A - actor selecciona "Realizar cuestionario"
+
+    ' =================================================
+    ' 3.A: CANDIDATO
+    ' =================================================
+
+    Pantalla --> Usuario : solicita tipo y número de documento y clave
+
+    note right of Pantalla
+    La clave se muestra con asteriscos.
+    end note
+
+    Usuario -> Pantalla : ingresarCredenciales()
+
+    Pantalla -> GA : autenticarCandidato(datos: LoginCandidatoEntradaDTO)
+    activate GA
+
+    GA -> GC : obtenerPorDocumento(tipo, nroDocumento)
+    activate GC
+    GC -> CDAO : buscarPorTipoYNroDocumento(tipo, nroDocumento)
+    activate CDAO
+    CDAO --> GC : Candidato
+    deactivate CDAO
+    GC --> GA : Candidato
+    deactivate GC
+
+    opt existe el candidato
+
+        GA -> Cand : validarCredenciales(claveIngreso)
+        activate Cand
+
+        note right of GA
+        Invocación a través de IAutenticable
+        (Candidato ..|> IAutenticable).
+        end note
+
+        Cand -> Cand : getCuestionarios()
+
+        loop por cada cuestionario del candidato
+            Cand -> Cu : getDetalle()
+            activate Cu
+            Cu --> Cand : DetalleCuestionario
+            deactivate Cu
+
+            Cand -> Det : getEstado()
+            activate Det
+            Det --> Cand : ESTADOCUESTIONARIO
+            deactivate Det
+
+            Cand -> Cu : getClave()
+            activate Cu
+            Cu --> Cand : String
+            deactivate Cu
+        end
+
+        note right of Cand
+        true si algún cuestionario está ACTIVO
+        o EN_PROCESO y su clave coincide con
+        la ingresada (3.A.2).
+        end note
+
+        Cand --> GA : boolean
+        deactivate Cand
+
+    end
+
+    GA --> Pantalla : boolean
+    deactivate GA
+
+    alt 3.A.2.1 - no existe el candidato, no tiene cuestionario activo o en proceso, o la clave no se corresponde
+
+        Pantalla -> Pantalla : mostrarError("Los datos ingresados no son válidos o no existe\nun cuestionario para el Candidato")
+        Usuario -> Pantalla : cerrar mensaje de error
+        Pantalla -> Pantalla : blanquearCampos()
+
+        note right of Pantalla
+        3.A.2.5: el CU continúa en el paso 3.A.
+        end note
+
+    else datos válidos
+
+        Pantalla -> PCC : completarCuestionario()
+        activate PCC
+
+        ref over Usuario, PCC
+            CU026 - Completar Cuestionario
+        end ref
+
+        deactivate PCC
+
+        note right of Pantalla
+        3.A.3 y 3.A.4: se presenta la pantalla
+        principal invocando CU026; el CU continúa
+        en el paso 7.
+        end note
+
+    end
+
+end
+
+' =====================================================
+' CIERRE DE SESIÓN DEL CONSULTOR
+' =====================================================
+
+opt el consultor presiona "Cerrar sesión"
+    Usuario -> Pantalla : cerrarSesion()
+    Pantalla --> Usuario : vuelve a la selección del tipo de acceso
+end
+
+deactivate Pantalla
+
+@enduml

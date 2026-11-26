@@ -1,15 +1,19 @@
 package ar.edu.utn.frsf.gestionevaluaciones.entity;
 
+import ar.edu.utn.frsf.gestionevaluaciones.interfaces.IAutenticable;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Candidato (diagrama de clases / DER). Según el DER su clave es nroCandidato,
@@ -18,7 +22,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "candidato")
 @AttributeOverride(name = "id", column = @Column(name = "nro_candidato"))
-public class Candidato extends Usuario {
+public class Candidato extends Usuario implements IAutenticable {
 
     @Column(name = "nro_candidato", insertable = false, updatable = false)
     private Integer nroCandidato;
@@ -51,6 +55,10 @@ public class Candidato extends Usuario {
     @Column(name = "eliminado", nullable = false)
     private boolean eliminado;
 
+    /** Candidato -- Cuestionario : responde */
+    @OneToMany(mappedBy = "candidato")
+    private List<Cuestionario> cuestionarios = new ArrayList<>();
+
     protected Candidato() {
     }
 
@@ -59,6 +67,30 @@ public class Candidato extends Usuario {
         return tipo != null && nroDocumento != null
                 && tipo == this.tipoDocumento
                 && nroDocumento.trim().equalsIgnoreCase(this.nroDocumento);
+    }
+
+    /**
+     * CU001 3.A.2 (vía IAutenticable): la clave corresponde a un cuestionario del candidato
+     * que está ACTIVO o EN_PROCESO.
+     */
+    @Override
+    public boolean validarCredenciales(String clave) {
+        if (clave == null || clave.isBlank()) {
+            return false;
+        }
+        for (Cuestionario cuestionario : getCuestionarios()) {
+            DetalleCuestionario detalle = cuestionario.getDetalle();
+            ESTADOCUESTIONARIO estado = detalle.getEstado();
+            boolean activoOEnProceso = estado == ESTADOCUESTIONARIO.ACTIVO || estado == ESTADOCUESTIONARIO.EN_PROCESO;
+            if (activoOEnProceso && cuestionario.getClave().equalsIgnoreCase(clave.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Cuestionario> getCuestionarios() {
+        return cuestionarios;
     }
 
     public Integer getNroCandidato() {

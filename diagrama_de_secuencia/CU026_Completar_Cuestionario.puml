@@ -37,7 +37,7 @@ activate CuestionarioDAO
 CuestionarioDAO --> Gestor : Cuestionario
 deactivate CuestionarioDAO
 
-opt [existe el cuestionario]
+opt existe el cuestionario
     Gestor -> Cu : getCandidato()
     activate Cu
     Cu --> Gestor : Candidato
@@ -49,7 +49,7 @@ opt [existe el cuestionario]
     deactivate Cand
 end
 
-alt [no existe el cuestionario, el documento no coincide\no el cuestionario no está ACTIVO ni EN_PROCESO]
+alt no existe el cuestionario, el documento no coincide\no el cuestionario no está ACTIVO ni EN_PROCESO
 
     Gestor --> Pantalla : CuestionarioSalidaDTO(valido = false)
 
@@ -61,7 +61,7 @@ alt [no existe el cuestionario, el documento no coincide\no el cuestionario no e
     el mensaje y vuelve a ingresar los datos.
     end note
 
-else [datos válidos]
+else datos válidos
 
 Gestor -> Cu : getDetalle()
 activate Cu
@@ -86,7 +86,7 @@ end note
 Gestor -> Gestor : superoMaximoAccesos(cuestionario)
 Gestor -> Gestor : estaVencido(cuestionario)
 
-alt [superó cantidad máxima de accesos o el tiempo máximo]
+alt superó cantidad máxima de accesos o el tiempo máximo
 
     Gestor -> Det : setEstado(ESTADOCUESTIONARIO.INCOMPLETO)
     Gestor -> Det : registrarFin(fechaHoraActual)
@@ -103,7 +103,7 @@ alt [superó cantidad máxima de accesos o el tiempo máximo]
     Pantalla -> Pantalla : emitirAlertaAuditiva()
     Pantalla --> Candidato : mensaje de cuestionario incompleto
 
-else [cuestionario ACTIVO venció antes de comenzar]
+else cuestionario ACTIVO venció antes de comenzar
 
     Gestor -> Det : setEstado(ESTADOCUESTIONARIO.SIN_CONTESTAR)
     Gestor -> Det : registrarFin(fechaHoraActual)
@@ -120,14 +120,14 @@ else [cuestionario ACTIVO venció antes de comenzar]
     Pantalla -> Pantalla : emitirAlertaAuditiva()
     Pantalla --> Candidato : mensaje de cuestionario no disponible
 
-else [cuestionario puede continuar]
+else cuestionario puede continuar
 
     Gestor -> CuestionarioDAO : modificar(cuestionario)
     activate CuestionarioDAO
     CuestionarioDAO --> Gestor : void
     deactivate CuestionarioDAO
 
-    alt [estado EN_PROCESO]
+    alt estado EN_PROCESO
 
         Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO,\nbloqueActual = primer bloque pendiente)
         deactivate Gestor
@@ -137,7 +137,7 @@ else [cuestionario puede continuar]
         NO se modifican las preguntas asignadas.
         end note
 
-    else [estado ACTIVO - primer ingreso]
+    else estado ACTIVO - primer ingreso
 
         Gestor --> Pantalla : CuestionarioSalidaDTO(estado = ACTIVO)
         deactivate Gestor
@@ -145,15 +145,15 @@ else [cuestionario puede continuar]
         Pantalla -> Pantalla : mostrarInstrucciones()
         Pantalla --> Candidato : instrucciones
 
-        alt [actor presiona Cancelar]
+        alt actor presiona Cancelar
 
             Candidato -> Pantalla : cancelar()
             Pantalla --> Candidato : fin del CU
 
-            break [CU finalizado]
+            break CU finalizado
             end
 
-        else [actor presiona Aceptar]
+        else actor presiona Aceptar
 
             Candidato -> Pantalla : aceptar()
 
@@ -189,7 +189,7 @@ else [cuestionario puede continuar]
             Pu --> Gestor : List<PuestoCompetencia>
             deactivate Pu
 
-            loop [por cada PuestoCompetencia]
+            loop por cada PuestoCompetencia
 
                 Gestor -> PCo : getCompetencia()
                 activate PCo
@@ -201,7 +201,7 @@ else [cuestionario puede continuar]
                 Comp --> Gestor : List<Factor>
                 deactivate Comp
 
-                loop [por cada factor]
+                loop por cada factor
 
                     Gestor -> GPreg : buscarPorFactor(codigoFactor)
                     activate GPreg
@@ -212,7 +212,7 @@ else [cuestionario puede continuar]
                     GPreg --> Gestor : List<Pregunta>
                     deactivate GPreg
 
-                    opt [el factor tiene al menos 2 preguntas]
+                    opt el factor tiene al menos 2 preguntas
                         Gestor -> Gestor : seleccionarPreguntasAleatorias(preguntas, 2)
                     end
 
@@ -225,7 +225,7 @@ else [cuestionario puede continuar]
             agrupan en bloques de cantPreguntasPorBloque.
             end note
 
-            loop [por cada pregunta elegida, en orden aleatorio]
+            loop por cada pregunta elegida, en orden aleatorio
                 create PC
                 Gestor -> PC : <<create>>\nPreguntaCuestionario(pregunta, orden, nroBloque)
                 Gestor -> Cu : agregarPreguntaCuestionario(preguntaCuestionario)
@@ -254,7 +254,7 @@ else [cuestionario puede continuar]
     ' WIZARD DE BLOQUES
     ' =====================================================
 
-    loop [mientras existan bloques pendientes]
+    loop mientras existan bloques pendientes
 
         Pantalla -> Gestor : obtenerBloque(datos: ObtenerBloqueCuestionarioEntradaDTO)
         activate Gestor
@@ -281,7 +281,7 @@ else [cuestionario puede continuar]
         Cu --> Gestor : List<PreguntaCuestionario>
         deactivate Cu
 
-        loop [por cada PreguntaCuestionario del bloque]
+        loop por cada PreguntaCuestionario del bloque
             Gestor -> PC : getPregunta()
             activate PC
             PC --> Gestor : Pregunta
@@ -297,7 +297,7 @@ else [cuestionario puede continuar]
         Gestor --> Pantalla : List<PreguntaCuestionarioDTO>
         deactivate Gestor
 
-        loop [por cada pregunta]
+        loop por cada pregunta
             Pantalla -> Gestor : listarOpcionesPregunta(codigoPregunta)
             activate Gestor
 
@@ -327,11 +327,11 @@ else [cuestionario puede continuar]
         Pantalla -> Pantalla : mostrarBloque()
         Pantalla --> Candidato : bloque con preguntas y opciones
 
-        loop [hasta completar el bloque actual]
+        loop hasta completar el bloque actual
 
             Candidato -> Pantalla : responderPreguntas()
 
-            alt [actor abandona el cuestionario]
+            alt actor abandona el cuestionario
 
                 Candidato -> Pantalla : cancelar()
 
@@ -342,10 +342,10 @@ else [cuestionario puede continuar]
 
                 Pantalla --> Candidato : fin del CU
 
-                break [abandona temporalmente]
+                break abandona temporalmente
                 end
 
-            else [actor presiona Siguiente / Finalizar]
+            else actor presiona Siguiente / Finalizar
 
                 Candidato -> Pantalla : siguiente()
                 note right of Pantalla
@@ -354,7 +354,7 @@ else [cuestionario puede continuar]
                 end note
                 Pantalla -> Pantalla : validarPreguntasRespondidas()
 
-                alt [faltan respuestas]
+                alt faltan respuestas
 
                     Pantalla -> Pantalla : mostrarPreguntasSinResponder()
                     Pantalla -> Pantalla : emitirAlertaAuditiva()
@@ -365,7 +365,7 @@ else [cuestionario puede continuar]
                     y las respuestas ya ingresadas.
                     end note
 
-                else [todas las preguntas fueron respondidas]
+                else todas las preguntas fueron respondidas
 
                     Pantalla -> Gestor : verificarVigencia(claveCuestionario)
                     activate Gestor
@@ -377,7 +377,7 @@ else [cuestionario puede continuar]
 
                     Gestor -> Gestor : estaVencido(cuestionario)
 
-                    alt [cuestionario dejó de estar vigente]
+                    alt cuestionario dejó de estar vigente
 
                         Gestor -> Cu : getDetalle()
                         activate Cu
@@ -397,10 +397,10 @@ else [cuestionario puede continuar]
                         Pantalla -> Pantalla : mostrarMensaje("Tiempo máximo alcanzado.")
                         Pantalla --> Candidato : mensaje de tiempo superado
 
-                        break [CU finalizado por vencimiento]
+                        break CU finalizado por vencimiento
                         end
 
-                    else [cuestionario vigente]
+                    else cuestionario vigente
 
                         Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO)
                         deactivate Gestor
@@ -413,7 +413,7 @@ else [cuestionario puede continuar]
                         CuestionarioDAO --> Gestor : Cuestionario
                         deactivate CuestionarioDAO
 
-                        loop [por cada RespuestaPreguntaEntradaDTO del bloque]
+                        loop por cada RespuestaPreguntaEntradaDTO del bloque
 
                             Gestor -> Cu : getPreguntaCuestionario(codigoPregunta)
                             activate Cu
@@ -450,7 +450,7 @@ else [cuestionario puede continuar]
                         Gestor --> Pantalla : void
                         deactivate Gestor
 
-                        break [bloque completado]
+                        break bloque completado
                         end
 
                     end
@@ -473,7 +473,7 @@ else [cuestionario puede continuar]
 
     Gestor -> Gestor : estaVencido(cuestionario)
 
-    alt [cuestionario vencido]
+    alt cuestionario vencido
 
         Gestor -> Cu : getDetalle()
         activate Cu
@@ -493,7 +493,7 @@ else [cuestionario puede continuar]
         Pantalla -> Pantalla : mostrarMensaje("Tiempo máximo alcanzado.")
         Pantalla --> Candidato : mensaje de tiempo superado
 
-    else [cuestionario vigente]
+    else cuestionario vigente
 
         Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO)
         deactivate Gestor
@@ -511,7 +511,7 @@ else [cuestionario puede continuar]
         Cu --> Gestor : List<PreguntaCuestionario>
         deactivate Cu
 
-        loop [por cada PreguntaCuestionario]
+        loop por cada PreguntaCuestionario
 
             Gestor -> PC : getRespuesta()
             activate PC
@@ -540,7 +540,7 @@ else [cuestionario puede continuar]
 
         end
 
-        loop [por cada factor evaluado]
+        loop por cada factor evaluado
 
             note right of Gestor
             total factor = suma de las ponderaciones
@@ -553,7 +553,7 @@ else [cuestionario puede continuar]
 
         end
 
-        loop [por cada competencia evaluada]
+        loop por cada competencia evaluada
 
             note right of Gestor
             total competencia = suma de los totales

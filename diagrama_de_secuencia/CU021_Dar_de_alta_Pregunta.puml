@@ -73,7 +73,7 @@ end note
 ' después de Generar con IA o al cargar otra pregunta)
 ' =====================================================
 
-loop [hasta que el actor cancele o no desee cargar otra pregunta]
+loop hasta que el actor cancele o no desee cargar otra pregunta
 
     ' -------------------------------------------------
     ' SELECCIÓN DE COMPETENCIA Y FACTOR (Correcciones N3 y N4)
@@ -128,7 +128,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
     ' ACCIONES POSIBLES
     ' -------------------------------------------------
 
-    alt [actor presiona Generar con IA]
+    alt actor presiona Generar con IA
 
         Consultor -> Pantalla : generarConIA()
 
@@ -144,7 +144,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
         y luego presiona Aceptar o Cancelar.
         end note
 
-    else [actor presiona Cancelar]
+    else actor presiona Cancelar
 
         Consultor -> Pantalla : cancelar()
         Pantalla --> Consultor : cerrar pantalla
@@ -153,7 +153,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
         Finaliza CU021 y retorna al CU020.
         end note
 
-    else [actor completa datos y presiona Aceptar]
+    else actor completa datos y presiona Aceptar
 
         Consultor -> Pantalla : aceptar()
 
@@ -175,7 +175,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
           o que no suman exactamente 10
         end note
 
-        alt [la lista de errores no está vacía]
+        alt la lista de errores no está vacía
 
             GestorPreguntas --> Pantalla : MensajeSalidaDTO(tipo = ERROR, errores)
             Pantalla -> Pantalla : mostrarErrores(errores)
@@ -187,7 +187,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
             Se vuelve al paso 2.
             end note
 
-        else [datos válidos]
+        else datos válidos
 
             ' =========================================
             ' VALIDAR EXISTENCIA DE PREGUNTA
@@ -198,7 +198,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
             PreguntaDAO --> GestorPreguntas : boolean
             deactivate PreguntaDAO
 
-            alt [la pregunta ya existe]
+            alt la pregunta ya existe
 
                 GestorPreguntas --> Pantalla : MensajeSalidaDTO(tipo = ERROR,\n"La pregunta ya existe en el factor")
                 Pantalla -> Pantalla : mostrarErrores(errores)
@@ -211,7 +211,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
                 Se vuelve al paso 2.
                 end note
 
-            else [la pregunta no existe]
+            else la pregunta no existe
 
                 ' =====================================
                 ' OBTENER ENTIDADES ASOCIADAS (Correcciones N3 y N6)
@@ -242,7 +242,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
                 create Pregunta
                 GestorPreguntas -> Pregunta : <<create>>\nPregunta(nombre, enunciado, descripcion,\nfactor, opcionRespuesta)
 
-                loop [por cada PonderacionItemEntradaDTO de datos.ponderaciones]
+                loop por cada PonderacionItemEntradaDTO de datos.ponderaciones
 
                     GestorPreguntas -> Opcion : getItem(ordenItem)
                     activate Opcion
@@ -274,7 +274,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
                 ' CARGAR OTRA PREGUNTA
                 ' =====================================
 
-                alt [actor selecciona SI]
+                alt actor selecciona SI
 
                     Consultor -> Pantalla : seleccionarSI()
                     Pantalla -> Pantalla : limpiarFormulario()
@@ -284,7 +284,7 @@ loop [hasta que el actor cancele o no desee cargar otra pregunta]
                     Se vuelve al paso 2.
                     end note
 
-                else [actor selecciona NO]
+                else actor selecciona NO
 
                     Consultor -> Pantalla : seleccionarNO()
                     Pantalla --> Consultor : cerrar pantalla

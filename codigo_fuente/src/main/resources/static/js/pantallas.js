@@ -27,7 +27,8 @@ document.addEventListener("keydown", function (e) {
 
 document.addEventListener("input", function (e) {
     const el = e.target;
-    if (el.matches("input[type=text], input[type=password], textarea")) {
+    // La contraseña del consultor (data-sin-mayusculas) se respeta tal cual: la valida el LDAP
+    if (el.matches("input[type=text], input[type=password], textarea") && !el.matches("[data-sin-mayusculas]")) {
         const inicio = el.selectionStart;
         const fin = el.selectionEnd;
         el.value = el.value.toUpperCase();

@@ -18,10 +18,14 @@ spring:
   thymeleaf:
     prefix: classpath:/boundary/templates/
     suffix: .html
+  ldap:
+    embedded:
+      base-dn: dc=consultora,dc=com
+      ldif: classpath:ldap/consultores.ldif
+      # Puerto libre al azar para que los tests no choquen con la app en ejecución
+      port: 0
 
 app:
-  consultor:
-    nombre: "CONSULTOR, PRUEBA"
   paginacion:
     filas-por-pagina: 10
   cuestionario:

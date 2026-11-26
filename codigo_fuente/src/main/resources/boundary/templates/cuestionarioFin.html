@@ -8,7 +8,7 @@
     <div th:replace="~{fragmentos :: usuario}"></div>
     <h1 th:replace="~{fragmentos :: tituloCuestionario('Cuestionario')}"></h1>
     <nav class="ruta">
-        <a th:href="@{/cuestionario}">Ingreso</a> &gt; Realizar Cuestionario &gt; <strong>Cuestionario</strong>
+        <a th:href="@{/}">Inicio</a> &gt; Realizar Cuestionario &gt; <strong>Cuestionario</strong>
     </nav>
 
     <section class="tarjeta-resultado" th:if="${exito}">
@@ -19,7 +19,7 @@
         </svg>
         <p class="mensaje-principal" th:text="${mensaje}">El cuestionario ha sido completado con éxito.</p>
         <p class="nota">Sus respuestas han sido guardadas exitosamente.</p>
-        <a class="boton boton-primario" th:href="@{/cuestionario}" tabindex="7" autofocus>Aceptar</a>
+        <a class="boton boton-primario" th:href="@{/}" tabindex="7" autofocus>Aceptar</a>
     </section>
 
     <span class="estado" th:if="${exito}">Estado Cuestionario: <em th:text="${#strings.replace(estado, '_', ' ')}">COMPLETO</em></span>
@@ -27,7 +27,7 @@
 
 <div th:unless="${exito}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoMensaje">
     <div class="ventana-mensaje">
-        <a class="cerrar" th:href="@{/cuestionario}" aria-label="Cerrar" tabindex="8" autofocus>&times;</a>
+        <a class="cerrar" th:href="@{/}" aria-label="Cerrar" tabindex="8" autofocus>&times;</a>
         <svg th:replace="~{fragmentos :: iconoAlerta}"></svg>
         <p id="textoMensaje" class="mensaje-principal" th:text="${mensaje}">Tiempo máximo alcanzado.</p>
         <p class="nota" th:text="'Estado Cuestionario: ' + ${#strings.replace(estado, '_', ' ')}">Estado Cuestionario: INCOMPLETO</p>

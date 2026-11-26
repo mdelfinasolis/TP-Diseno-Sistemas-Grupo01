@@ -13,6 +13,7 @@ import ar.edu.utn.frsf.gestionevaluaciones.dto.salida.PreguntaCuestionarioDTO;
 import ar.edu.utn.frsf.gestionevaluaciones.dto.salida.ResultadoCuestionarioDTO;
 import ar.edu.utn.frsf.gestionevaluaciones.entity.ESTADOCUESTIONARIO;
 import ar.edu.utn.frsf.gestionevaluaciones.entity.TIPODOCUMENTO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -88,18 +89,23 @@ public class PantallaCompletarCuestionario {
     // Ingreso (CU001 3.A) y validaciones de acceso
     // =====================================================================
 
-    /** Pantalla de ingreso del candidato: tipo y número de documento y clave. */
+    /** El ingreso del candidato es el de CU001 (PantallaAutenticacion, "Realizar cuestionario"). */
     @GetMapping
-    public String mostrarIngreso(Model model, HttpSession session) {
+    public String mostrarIngreso(HttpSession session) {
         limpiarSesion(session);
-        model.addAttribute("nombreUsuario", "");
-        cargarIngreso(model, new LoginCandidatoEntradaDTO());
-        return "cuestionarioIngreso";
+        return "redirect:/?tipo=candidato";
     }
 
+    /**
+     * Invocado por CU001 (3.A.3) una vez autenticado el candidato. obtenerCuestionario vuelve a validar
+     * los datos con el mismo criterio y mensaje, registra el acceso y controla los vencimientos.
+     */
     @PostMapping
     public String completarCuestionario(@ModelAttribute("datos") LoginCandidatoEntradaDTO datos, Model model,
-                                        HttpSession session) {
+                                        HttpServletRequest request, HttpSession session) {
+        if (request.getAttribute(PantallaAutenticacion.CANDIDATO_AUTENTICADO) == null) {
+            return "redirect:/?tipo=candidato"; // solo se llega a CU026 desde CU001
+        }
         limpiarSesion(session);
         CuestionarioSalidaDTO cuestionario = gestorCuestionarios.obtenerCuestionario(datos);
 
@@ -143,7 +149,7 @@ public class PantallaCompletarCuestionario {
     public String mostrarInstrucciones(Model model, HttpSession session) {
         CuestionarioSalidaDTO cuestionario = (CuestionarioSalidaDTO) session.getAttribute(SESION_CUESTIONARIO);
         if (cuestionario == null || session.getAttribute(SESION_CLAVE) == null) {
-            return "redirect:/cuestionario";
+            return "redirect:/";
         }
         model.addAttribute("cuestionario", cuestionario);
         model.addAttribute("instruccionesEncabezado", instruccionesEncabezado);
@@ -159,7 +165,7 @@ public class PantallaCompletarCuestionario {
         String clave = (String) session.getAttribute(SESION_CLAVE);
         CuestionarioSalidaDTO cuestionario = (CuestionarioSalidaDTO) session.getAttribute(SESION_CUESTIONARIO);
         if (clave == null || cuestionario == null) {
-            return "redirect:/cuestionario";
+            return "redirect:/";
         }
         gestorCuestionarios.iniciarCuestionario(clave);
         session.setAttribute(SESION_BLOQUE, 1);
@@ -171,7 +177,7 @@ public class PantallaCompletarCuestionario {
     @GetMapping("/cancelar")
     public String cancelar(HttpSession session) {
         limpiarSesion(session);
-        return "redirect:/cuestionario";
+        return "redirect:/";
     }
 
     // =====================================================================
@@ -183,7 +189,7 @@ public class PantallaCompletarCuestionario {
         String clave = (String) session.getAttribute(SESION_CLAVE);
         Integer nroBloque = (Integer) session.getAttribute(SESION_BLOQUE);
         if (clave == null || nroBloque == null) {
-            return "redirect:/cuestionario";
+            return "redirect:/";
         }
         ObtenerBloqueCuestionarioEntradaDTO datos = new ObtenerBloqueCuestionarioEntradaDTO(clave, nroBloque);
         BloqueCuestionarioDTO bloque = gestorCuestionarios.obtenerBloque(datos);
@@ -242,7 +248,7 @@ public class PantallaCompletarCuestionario {
         String clave = (String) session.getAttribute(SESION_CLAVE);
         Integer nroBloque = (Integer) session.getAttribute(SESION_BLOQUE);
         if (clave == null || nroBloque == null) {
-            return "redirect:/cuestionario";
+            return "redirect:/";
         }
         ObtenerBloqueCuestionarioEntradaDTO datosBloque = new ObtenerBloqueCuestionarioEntradaDTO(clave, nroBloque);
         BloqueCuestionarioDTO bloque = gestorCuestionarios.obtenerBloque(datosBloque);

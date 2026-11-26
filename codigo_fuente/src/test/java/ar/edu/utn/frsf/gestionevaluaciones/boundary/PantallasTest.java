@@ -1,12 +1,16 @@
 package ar.edu.utn.frsf.gestionevaluaciones.boundary;
 
 import ar.edu.utn.frsf.gestionevaluaciones.dto.entrada.FiltroPreguntaEntradaDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import ar.edu.utn.frsf.gestionevaluaciones.dto.salida.SesionConsultorDTO;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.servlet.FlashMap;
 
@@ -26,11 +30,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PantallasTest {
 
     @Autowired
+    private WebApplicationContext contexto;
+
     private MockMvc mvc;
+
+    /** Todas las solicitudes llevan la sesión de un consultor autenticado en CU001. */
+    @BeforeEach
+    void iniciarSesionConsultor() {
+        mvc = MockMvcBuilders.webAppContextSetup(contexto)
+                .defaultRequest(get("/").sessionAttr(PantallaAutenticacion.SESION_CONSULTOR,
+                        new SesionConsultorDTO("LFERRARI", "LUCIA", "FERRARI", true)))
+                .build();
+    }
 
     @Test
     void menu() throws Exception {
-        mvc.perform(get("/"))
+        mvc.perform(get("/menu"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Gestionar Preguntas")))
                 .andExpect(content().string(containsString("Emitir Orden de Mérito")));
@@ -86,7 +101,7 @@ class PantallasTest {
                 .andExpect(content().string(not(containsString("Listado de Preguntas"))));
 
         // Salir
-        mvc.perform(get("/preguntas/salir").session(sesion)).andExpect(redirectedUrl("/"));
+        mvc.perform(get("/preguntas/salir").session(sesion)).andExpect(redirectedUrl("/menu"));
         assertThat(sesion.getAttribute("cu020.filtros")).isNull();
     }
 
@@ -142,7 +157,7 @@ class PantallasTest {
                 .andExpect(content().string(containsString("24,00")))
                 .andExpect(content().string(containsString("imprimir()")));
 
-        mvc.perform(get("/orden-merito/cancelar").session(sesion)).andExpect(redirectedUrl("/"));
+        mvc.perform(get("/orden-merito/cancelar").session(sesion)).andExpect(redirectedUrl("/menu"));
     }
 
     @Test

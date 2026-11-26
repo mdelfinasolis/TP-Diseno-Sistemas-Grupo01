@@ -44,6 +44,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- CU001: autenticación del consultor contra el LDAP de la organización (diagrama de despliegue).
+             En desarrollo se usa un servidor LDAP embebido (UnboundID) cargado desde consultores.ldif. -->
+        <dependency>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.unboundid</groupId>
+            <artifactId>unboundid-ldapsdk</artifactId>
+        </dependency>
+
         <!-- CU025: exportación de candidatos y claves a Excel (.xls, formato HSSF) -->
         <dependency>
             <groupId>org.apache.poi</groupId>

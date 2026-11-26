@@ -7,7 +7,7 @@
     <div th:replace="~{fragmentos :: usuario}"></div>
     <h1 th:replace="~{fragmentos :: tituloPregunta(${tituloPantalla})}"></h1>
     <nav class="ruta">
-        <a th:href="@{/}">Menú</a> &gt; <a th:href="@{${urlVolver}}">Preguntas</a> &gt;
+        <a th:href="@{/menu}">Menú</a> &gt; <a th:href="@{${urlVolver}}">Preguntas</a> &gt;
         <strong th:text="${tituloPantalla}">Pantalla</strong>
     </nav>
 

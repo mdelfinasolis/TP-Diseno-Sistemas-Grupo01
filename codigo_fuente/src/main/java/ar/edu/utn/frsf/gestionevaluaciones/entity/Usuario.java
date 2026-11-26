@@ -24,6 +24,11 @@ public abstract class Usuario {
     protected Usuario() {
     }
 
+    protected Usuario(String nombre, String apellido) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+    }
+
     public Integer getId() {
         return id;
     }

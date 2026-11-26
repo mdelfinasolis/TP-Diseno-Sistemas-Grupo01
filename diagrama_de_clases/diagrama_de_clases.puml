@@ -45,6 +45,10 @@ package "Capa de Presentacion (Boundary)" {
     + seleccionarTipoAcceso()
     + ingresarCredenciales()
     + mostrarError(mensaje: String)
+    + blanquearCampos()
+    + iniciarSesion(sesion: SesionConsultorDTO)
+    + cerrarSesion()
+    + salir()
   }
 
   class PantallaImportarCandidatos <<boundary>> {
@@ -279,8 +283,8 @@ package "Capa de Logica de Negocio (Control)" {
   }
 
   class GestorAutenticacion <<control>> {
-    + autenticarConsultor(datos: LoginConsultorEntradaDTO): Consultor
-    + autenticarCandidato(datos: LoginCandidatoEntradaDTO): Candidato
+    + autenticarConsultor(datos: LoginConsultorEntradaDTO): SesionConsultorDTO
+    + autenticarCandidato(datos: LoginCandidatoEntradaDTO): boolean
     + validarLDAP(datos: LoginConsultorEntradaDTO): boolean
   }
 
@@ -426,11 +430,13 @@ package "Modelo de Dominio (Entity)" {
 
   class Consultor <<entity>> {
     - nombreUsuario: String
-    - contrasena: String
+    + Consultor(nombreUsuario: String, nombre: String, apellido: String)
   }
 
   class Candidato <<entity>> {
     + coincideDocumento(tipo: TIPODOCUMENTO, nroDocumento: String): boolean
+    + validarCredenciales(clave: String): boolean
+    + getCuestionarios(): List~Cuestionario~
     - nroCandidato: int
     - tipoDocumento: TIPODOCUMENTO
     - nroDocumento: String
@@ -974,6 +980,13 @@ package "DTOs" {
       - fechaEmision: DateTime
       - candidatos: List~CandidatoOrdenMeritoDTO~
     }
+
+    class SesionConsultorDTO <<DTO>> {
+      - nombreUsuario: String
+      - nombre: String
+      - apellido: String
+      - valido: boolean
+    }
   }
 
   package "DTOs de Excel" {
@@ -1157,6 +1170,9 @@ ProveedorIAAdapter ..|> ServicioGeneracionIA
 ProveedorIAAdapter --> ProveedorIAExterno : adapta / delega
 (Candidato, Cuestionario ).. DetalleCuestionario
 PantallaAutenticacion ..> GestorAutenticacion
+PantallaAutenticacion ..> PantallaMenuPrincipal : muestra el menú del consultor >
+PantallaAutenticacion ..> PantallaCompletarCuestionario : invoca CU026 >
+GestorAutenticacion ..> SesionConsultorDTO : genera
 PantallaGestionPuestos ..> GestorPuestos
 PantallaGestionCompetencias ..> GestorCompetencias
 PantallaAltaCompetencia ..> GestorCompetencias
@@ -1252,7 +1268,6 @@ Pregunta ..|> IAuditable
 OpcionRespuesta ..|> IAuditable
 Empresa ..|> IAuditable
 GestorPreguntas ..|> IGenerableConIA
-Consultor ..|> IAutenticable
 Candidato ..|> IAutenticable
 GestorPuestos ..> PuestoListadoDTO : genera
 GestorPuestos ..> CompetenciaRequeridaDTO : genera
@@ -1337,7 +1352,6 @@ EvaluacionDAO --> Evaluacion : persiste
 CuestionarioDAO --> Cuestionario : persiste
 RegistroAuditoriaDAO --> RegistroAuditoria : persiste
 GestorAutenticacion ..> GestorCandidatos : obtiene candidato >
-GestorAutenticacion ..> GestorCuestionarios : valida cuestionario >
 GestorPuestos ..> PuestoDAO : usa
 GestorPuestos ..> GestorEmpresas : obtiene empresa >
 GestorPuestos ..> GestorCompetencias : obtiene competencias >

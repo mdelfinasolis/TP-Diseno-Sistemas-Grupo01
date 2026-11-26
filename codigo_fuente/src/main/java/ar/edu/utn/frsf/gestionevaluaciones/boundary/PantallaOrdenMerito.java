@@ -55,9 +55,6 @@ public class PantallaOrdenMerito {
     private final GestorPuestos gestorPuestos;
     private final GestorEmpresas gestorEmpresas;
 
-    @Value("${app.consultor.nombre}")
-    private String nombreConsultor;
-
     @Value("${app.paginacion.filas-por-pagina:10}")
     private int filasPorPagina;
 
@@ -79,11 +76,6 @@ public class PantallaOrdenMerito {
         });
     }
 
-    @ModelAttribute("nombreConsultor")
-    public String nombreConsultor() {
-        return nombreConsultor;
-    }
-
     /** Paso 1: el Consultor elige la opción; se cargan las listas desplegables de puestos y empresas. */
     @GetMapping
     public String seleccionarOpcionOrdenMerito(Model model, HttpSession session) {
@@ -102,7 +94,7 @@ public class PantallaOrdenMerito {
     @GetMapping("/cancelar")
     public String cancelar(HttpSession session) {
         limpiarSesion(session);
-        return "redirect:/";
+        return "redirect:/menu";
     }
 
     /** El Consultor ingresa los filtros: Código, Nombre del puesto y Empresa. */

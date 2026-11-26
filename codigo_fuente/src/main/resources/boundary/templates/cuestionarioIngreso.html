@@ -2,15 +2,15 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: head('Realizar Cuestionario')}"></head>
 <body>
-<!-- CU001 3.A - Ingreso del Candidato para realizar el cuestionario (CU026) -->
+<!-- CU001 3.A - Ingreso del Candidato para realizar el cuestionario; si es válido se invoca CU026 -->
 <main class="pantalla">
     <div th:replace="~{fragmentos :: usuario}"></div>
     <h1 th:replace="~{fragmentos :: tituloCuestionario('Realizar Cuestionario')}"></h1>
-    <nav class="ruta"><strong>Ingreso</strong></nav>
+    <nav class="ruta"><a th:href="@{/}">Inicio</a> &gt; <strong>Realizar cuestionario</strong></nav>
 
     <p class="subtitulo-pantalla">Ingrese su documento y la clave recibida para realizar el cuestionario.</p>
 
-    <form id="formIngreso" method="post" th:action="@{/cuestionario}" th:object="${datos}" autocomplete="off">
+    <form id="formIngreso" method="post" th:action="@{/autenticacion/candidato}" th:object="${datos}" autocomplete="off">
         <div class="criterios">
             <fieldset class="campo">
                 <legend>Tipo de documento (*)</legend>
@@ -30,12 +30,16 @@
             </fieldset>
         </div>
         <div class="acciones">
-            <a class="boton boton-contorno" th:href="@{/}" tabindex="5">
-                <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
-            </a>
+            <a class="boton boton-secundario" th:href="@{/}" tabindex="5">Cambiar tipo de acceso</a>
             <button type="submit" class="boton boton-primario" tabindex="4" data-boton-defecto>Ingresar</button>
         </div>
     </form>
+
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/salir}" tabindex="6">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
 </main>
 
 <!-- CU001 3.A.2.2: datos no válidos; al cerrar, los campos quedan en blanco -->

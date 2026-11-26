@@ -72,9 +72,6 @@ public class PantallaEvaluarCandidatos {
     private final GestorEvaluaciones gestorEvaluaciones;
     private final GestorCandidatos gestorCandidatos;
 
-    @Value("${app.consultor.nombre}")
-    private String nombreConsultor;
-
     @Value("${app.paginacion.filas-por-pagina:10}")
     private int filasPorPagina;
 
@@ -95,11 +92,6 @@ public class PantallaEvaluarCandidatos {
                 setValue(texto == null || texto.isBlank() ? null : texto.trim().toUpperCase(Locale.ROOT));
             }
         });
-    }
-
-    @ModelAttribute("nombreConsultor")
-    public String nombreConsultor() {
-        return nombreConsultor;
     }
 
     // =====================================================================
@@ -370,7 +362,7 @@ public class PantallaEvaluarCandidatos {
             return "redirect:/evaluar/claves";
         }
         limpiarSesion(session);
-        return "redirect:/";
+        return "redirect:/menu";
     }
 
     private byte[] generarArchivoExcel(ExportacionCandidatosExcelDTO exportacion) throws IOException {

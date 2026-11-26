@@ -41,9 +41,6 @@ public class PantallaGestionPreguntas {
     private final GestorCompetencias gestorCompetencias;
     private final GestorFactores gestorFactores;
 
-    @Value("${app.consultor.nombre}")
-    private String nombreConsultor;
-
     @Value("${app.paginacion.filas-por-pagina:10}")
     private int filasPorPagina;
 
@@ -64,11 +61,6 @@ public class PantallaGestionPreguntas {
                 setValue(texto == null || texto.isBlank() ? null : texto.trim().toUpperCase(Locale.ROOT));
             }
         });
-    }
-
-    @ModelAttribute("nombreConsultor")
-    public String nombreConsultor() {
-        return nombreConsultor;
     }
 
     /** Paso 1: el Consultor elige la opción Preguntas; se cargan las competencias y se muestran los criterios. */
@@ -187,7 +179,7 @@ public class PantallaGestionPreguntas {
         session.removeAttribute(SESION_FILTROS);
         session.removeAttribute(SESION_PAGINA);
         session.removeAttribute(SESION_PREGUNTA);
-        return "redirect:/";
+        return "redirect:/menu";
     }
 
     /** Carga las listas desplegables de los criterios de búsqueda. */

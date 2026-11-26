@@ -4,13 +4,18 @@ import ar.edu.utn.frsf.gestionevaluaciones.control.GestorCuestionarios;
 import ar.edu.utn.frsf.gestionevaluaciones.dto.entrada.ObtenerBloqueCuestionarioEntradaDTO;
 import ar.edu.utn.frsf.gestionevaluaciones.dto.salida.PreguntaCuestionarioDTO;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import ar.edu.utn.frsf.gestionevaluaciones.dto.salida.SesionConsultorDTO;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +41,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PantallasEtapa8Test {
 
     @Autowired
+    private WebApplicationContext contexto;
+
     private MockMvc mvc;
+
+    /** Todas las solicitudes llevan la sesión de un consultor autenticado en CU001. */
+    @BeforeEach
+    void iniciarSesionConsultor() {
+        mvc = MockMvcBuilders.webAppContextSetup(contexto)
+                .defaultRequest(get("/").sessionAttr(PantallaAutenticacion.SESION_CONSULTOR,
+                        new SesionConsultorDTO("LFERRARI", "LUCIA", "FERRARI", true)))
+                .build();
+    }
     @Autowired
     private GestorCuestionarios gestorCuestionarios;
 
@@ -176,40 +192,54 @@ class PantallasEtapa8Test {
             assertThat(libro.getSheetAt(0).getPhysicalNumberOfRows()).isEqualTo(3);
         }
 
-        mvc.perform(get("/evaluar/cancelar").session(sesion)).andExpect(redirectedUrl("/"));
+        mvc.perform(get("/evaluar/cancelar").session(sesion)).andExpect(redirectedUrl("/menu"));
     }
 
     // =====================================================================
     // CU026
     // =====================================================================
 
-    private MockHttpServletRequestBuilder ingreso(MockHttpSession sesion, String nroDocumento, String clave) {
-        return post("/cuestionario").session(sesion)
+    private MockHttpServletRequestBuilder datosIngreso(String url, MockHttpSession sesion, String nroDocumento,
+                                                       String clave) {
+        return post(url).session(sesion)
                 .param("tipoDocumento", "DNI").param("nroDocumento", nroDocumento).param("claveIngreso", clave);
+    }
+
+    /**
+     * Ingreso del candidato por CU001 ("Realizar cuestionario"). Si CU001 lo autentica, hace forward a CU026
+     * (MockMvc no ejecuta los forward, así que se invoca CU026 con la marca que deja CU001).
+     */
+    private ResultActions ingresar(MockHttpSession sesion, String nroDocumento, String clave) throws Exception {
+        MvcResult cu001 = mvc.perform(datosIngreso("/autenticacion/candidato", sesion, nroDocumento, clave)).andReturn();
+        if (!"/cuestionario".equals(cu001.getResponse().getForwardedUrl())) {
+            return mvc.perform(datosIngreso("/autenticacion/candidato", sesion, nroDocumento, clave));
+        }
+        return mvc.perform(datosIngreso("/cuestionario", sesion, nroDocumento, clave)
+                .requestAttr(PantallaAutenticacion.CANDIDATO_AUTENTICADO, Boolean.TRUE));
     }
 
     @Test
     void cu026DatosInvalidosYVencimientos() throws Exception {
         MockHttpSession sesion = new MockHttpSession();
-        mvc.perform(get("/cuestionario").session(sesion))
+        mvc.perform(get("/").param("tipo", "candidato").session(sesion))
                 .andExpect(content().string(containsString("type=\"password\"")));
 
-        mvc.perform(ingreso(sesion, "42111001", "MALA1234"))
+        ingresar(sesion, "42111001", "MALA1234")
                 .andExpect(content().string(containsString(
                         "Los datos ingresados no son válidos o no existe un cuestionario para el Candidato")))
                 .andExpect(content().string(not(containsString("value=\"42111001\""))));
 
-        mvc.perform(ingreso(sesion, "42111002", "VENCID38"))
+        ingresar(sesion, "42111002", "VENCID38")
                 .andExpect(content().string(containsString("Tiempo de espera alcanzado.")))
                 .andExpect(content().string(containsString("SIN CONTESTAR")));
-        mvc.perform(ingreso(sesion, "42111004", "TIEMPO52"))
+        ingresar(sesion, "42111004", "TIEMPO52")
                 .andExpect(content().string(containsString("Tiempo máximo alcanzado.")))
                 .andExpect(content().string(containsString("INCOMPLETO")));
-        mvc.perform(ingreso(sesion, "42111005", "ACCESO63"))
+        ingresar(sesion, "42111005", "ACCESO63")
                 .andExpect(content().string(containsString("Cantidad máxima de accesos alcanzada.")));
 
         // 1.C: EN_PROCESO retoma en el bloque pendiente
-        mvc.perform(ingreso(sesion, "42111003", "proces49")).andExpect(redirectedUrl("/cuestionario/bloque"));
+        ingresar(sesion, "42111003", "proces49").andExpect(redirectedUrl("/cuestionario/bloque"));
         mvc.perform(get("/cuestionario/bloque").session(sesion))
                 .andExpect(content().string(containsString("Bloque (2/2)")))
                 .andExpect(content().string(containsString("Finalizar")))
@@ -219,7 +249,7 @@ class PantallasEtapa8Test {
     @Test
     void cu026FlujoCompleto() throws Exception {
         MockHttpSession sesion = new MockHttpSession();
-        mvc.perform(ingreso(sesion, "42111001", "activa27")).andExpect(redirectedUrl("/cuestionario/instrucciones"));
+        ingresar(sesion, "42111001", "activa27").andExpect(redirectedUrl("/cuestionario/instrucciones"));
         mvc.perform(get("/cuestionario/instrucciones").session(sesion))
                 .andExpect(content().string(containsString("Lea atentamente las instrucciones antes de comenzar")))
                 .andExpect(content().string(containsString("00:20:00")))
@@ -250,14 +280,14 @@ class PantallasEtapa8Test {
                 .andExpect(content().string(containsString("COMPLETO")));
 
         // Ya completo: no puede volver a ingresar
-        mvc.perform(ingreso(sesion, "42111001", "ACTIVA27"))
+        ingresar(sesion, "42111001", "ACTIVA27")
                 .andExpect(content().string(containsString("Los datos ingresados no son válidos")));
     }
 
     @Test
     void cu026FinalizarDesdeUnBloqueQueNoEsElUltimoNoCompletaElCuestionario() throws Exception {
         MockHttpSession sesion = new MockHttpSession();
-        mvc.perform(ingreso(sesion, "42111001", "ACTIVA27"));
+        ingresar(sesion, "42111001", "ACTIVA27");
         mvc.perform(post("/cuestionario/aceptar").session(sesion));
 
         // Un POST a Finalizar con el bloque 1 respondido solo guarda ese bloque y pasa al 2

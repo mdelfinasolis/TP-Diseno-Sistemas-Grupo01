@@ -49,12 +49,12 @@ deactivate GEmp
 
 Pantalla --> Consultor : filtros: Código, Nombre del Puesto (lista), Empresa (lista)
 
-alt [actor presiona Cancelar]
+alt actor presiona Cancelar
 
     Consultor -> Pantalla : cancelar()
     Pantalla --> Consultor : fin del CU
 
-else [actor busca puestos]
+else actor busca puestos
 
     Consultor -> Pantalla : ingresarFiltros(filtros)
     Consultor -> Pantalla : buscar()
@@ -71,7 +71,7 @@ else [actor busca puestos]
     GP --> GestorReportes : List<PuestoListadoDTO>
     deactivate GP
 
-    loop [por cada puesto encontrado]
+    loop por cada puesto encontrado
 
         GestorReportes -> GE : buscarPorPuesto(codigoPuesto)
         activate GE
@@ -82,7 +82,7 @@ else [actor busca puestos]
         GE --> GestorReportes : List<Evaluacion>
         deactivate GE
 
-        loop [por cada evaluación]
+        loop por cada evaluación
             GestorReportes -> GCu : buscarPorEvaluacion(idEvaluacion)
             activate GCu
             GCu -> CuestionarioDAO : buscarPorEvaluacion(idEvaluacion)
@@ -133,7 +133,7 @@ else [actor busca puestos]
     GE --> GestorReportes : List<Evaluacion>
     deactivate GE
 
-    loop [por cada evaluación]
+    loop por cada evaluación
         GestorReportes -> Ev : getCantidadCandidatos()
         activate Ev
         Ev --> GestorReportes : int
@@ -148,12 +148,12 @@ else [actor busca puestos]
     GestorReportes --> Pantalla : List<EvaluacionListadoDTO>
     deactivate GestorReportes
 
-    alt [la lista de evaluaciones está vacía]
+    alt la lista de evaluaciones está vacía
 
         Pantalla -> Pantalla : mostrarMensaje("El puesto seleccionado no posee evaluaciones.")
         Pantalla --> Consultor : vuelve a la grilla de puestos
 
-    else [el puesto posee evaluaciones]
+    else el puesto posee evaluaciones
 
         Pantalla --> Consultor : evaluaciones del puesto + opción TODAS
 
@@ -186,7 +186,7 @@ else [actor busca puestos]
         para cada competencia.
         end note
 
-        alt [datos.todasLasEvaluaciones = true]
+        alt datos.todasLasEvaluaciones = true
 
             GestorReportes -> GE : buscarPorPuesto(codigoPuesto)
             activate GE
@@ -197,7 +197,7 @@ else [actor busca puestos]
             GE --> GestorReportes : List<Evaluacion>
             deactivate GE
 
-        else [se seleccionaron evaluaciones específicas]
+        else se seleccionaron evaluaciones específicas
 
             note right of GestorReportes
             Se utilizan los idsEvaluaciones
@@ -206,7 +206,7 @@ else [actor busca puestos]
 
         end
 
-        loop [por cada evaluación seleccionada]
+        loop por cada evaluación seleccionada
 
             GestorReportes -> GCu : buscarPorEvaluacion(idEvaluacion)
             activate GCu
@@ -217,7 +217,7 @@ else [actor busca puestos]
             GCu --> GestorReportes : List<Cuestionario>
             deactivate GCu
 
-            loop [por cada cuestionario]
+            loop por cada cuestionario
 
                 GestorReportes -> Cu : getCandidato()
                 activate Cu
@@ -234,7 +234,7 @@ else [actor busca puestos]
                 Det --> GestorReportes : ESTADOCUESTIONARIO
                 deactivate Det
 
-                opt [estado = COMPLETO]
+                opt estado = COMPLETO
                     GestorReportes -> Cu : getResultadosCompetencia()
                     activate Cu
                     Cu --> GestorReportes : List<ResultadoCompetencia>
@@ -267,7 +267,7 @@ else [actor busca puestos]
         ' IMPRESIÓN
         ' =============================================
 
-        opt [actor presiona Imprimir]
+        opt actor presiona Imprimir
 
             Consultor -> Pantalla : imprimir()
 

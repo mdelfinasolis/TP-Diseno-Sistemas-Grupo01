@@ -1,0 +1,48 @@
+# =====================================================================
+# Consultores de prueba del servidor LDAP embebido (simula el LDAP de la
+# organización del diagrama de despliegue). Solo para desarrollo y pruebas.
+# Identificador: máx. 15 caracteres (en mayúsculas); contraseña: máx. 20.
+# =====================================================================
+
+dn: dc=consultora,dc=com
+objectClass: top
+objectClass: domain
+dc: consultora
+
+dn: ou=consultores,dc=consultora,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: consultores
+
+dn: uid=LFERRARI,ou=consultores,dc=consultora,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: LFERRARI
+cn: LUCIA FERRARI
+givenName: LUCIA
+sn: FERRARI
+userPassword: Ferrari2026
+
+dn: uid=TBIANCHI,ou=consultores,dc=consultora,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: TBIANCHI
+cn: TOMAS BIANCHI
+givenName: TOMAS
+sn: BIANCHI
+userPassword: Bianchi.2026
+
+dn: uid=CROSSI,ou=consultores,dc=consultora,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: CROSSI
+cn: CARLA ROSSI
+givenName: CARLA
+sn: ROSSI
+userPassword: Rossi#2026

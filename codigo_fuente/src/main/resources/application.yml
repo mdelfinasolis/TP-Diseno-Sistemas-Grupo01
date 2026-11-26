@@ -31,11 +31,15 @@ spring:
     prefix: classpath:/boundary/templates/
     suffix: .html
     encoding: UTF-8
+  # CU001: LDAP de la organización. En desarrollo, servidor LDAP embebido con los consultores de prueba.
+  # Para usar un LDAP real: quitar "embedded" y configurar spring.ldap.urls, base, username y password.
+  ldap:
+    embedded:
+      base-dn: dc=consultora,dc=com
+      ldif: classpath:ldap/consultores.ldif
+      port: 8389
 
 app:
-  consultor:
-    # Hasta implementar CU001 (autenticación) se muestra un consultor fijo
-    nombre: "GODDIO, SERENA"
   paginacion:
     filas-por-pagina: 10
   # Repositorio de configuraciones del sistema (enunciado, CU026): parámetros e instrucciones del cuestionario

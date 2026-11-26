@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Ingreso al sistema')}"></head>
+<body>
+<!-- CU001 - Autenticar usuario: selección del tipo de acceso e ingreso del consultor (contra el LDAP) -->
+<main class="pantalla pantalla-ingreso">
+    <h1 class="titulo">
+        <svg class="icono-titulo" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="5" y="10.5" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="12" cy="15.5" r="1.4" fill="currentColor"/>
+        </svg>
+        <span>Gestión de Evaluaciones</span>
+    </h1>
+    <nav class="ruta">
+        <a th:href="@{/}">Inicio</a>
+        <th:block th:if="${tipo == 'consultor'}"> &gt; <strong>Ingresar como usuario consultor</strong></th:block>
+    </nav>
+
+    <!-- Pasos 1 y 2: tipo de acceso -->
+    <section th:if="${tipo == null}">
+        <p class="subtitulo-pantalla">Seleccione cómo desea ingresar al sistema.</p>
+        <div class="opciones-acceso">
+            <a class="opcion-acceso" th:href="@{/(tipo='consultor')}" tabindex="1">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6" fill="none" stroke="currentColor"
+                          stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <strong>Ingresar como usuario consultor</strong>
+                <span>Gestión de preguntas, evaluaciones y reportes.</span>
+            </a>
+            <a class="opcion-acceso" th:href="@{/(tipo='candidato')}" tabindex="2">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="7" y="2.5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M3.5 7v13.5H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M11 9.5h6M11 12.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <strong>Realizar cuestionario</strong>
+                <span>Para candidatos con una clave de ingreso.</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Pasos 4 y 5: usuario y contraseña del consultor -->
+    <section th:if="${tipo == 'consultor'}">
+        <p class="subtitulo-pantalla">Ingrese su usuario y contraseña de la organización.</p>
+        <form id="formConsultor" method="post" th:action="@{/autenticacion/consultor}" th:object="${datosConsultor}"
+              autocomplete="off">
+            <div class="criterios criterios-ingreso">
+                <fieldset class="campo">
+                    <legend>Usuario (*)</legend>
+                    <!-- Identificador SIEMPRE en mayúsculas; máximo 15 caracteres (LDAP) -->
+                    <input type="text" th:field="*{usuario}" maxlength="15" tabindex="1" autofocus>
+                </fieldset>
+                <fieldset class="campo">
+                    <legend>Contraseña (*)</legend>
+                    <!-- Contraseña con asteriscos; máximo 20 caracteres (LDAP); se respeta mayúsculas/minúsculas -->
+                    <input type="password" th:field="*{contrasena}" maxlength="20" tabindex="2" data-sin-mayusculas>
+                </fieldset>
+            </div>
+            <div class="acciones">
+                <a class="boton boton-secundario" th:href="@{/}" tabindex="4">Cambiar tipo de acceso</a>
+                <button type="submit" class="boton boton-primario" tabindex="3" data-boton-defecto>Ingresar</button>
+            </div>
+        </form>
+    </section>
+
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/salir}" tabindex="5">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+
+<!-- 5.A: el usuario o la contraseña no son válidos; al cerrar, los campos quedan en blanco -->
+<div th:if="${mensaje != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoMensaje">
+    <div class="ventana-mensaje">
+        <button type="button" class="cerrar" aria-label="Cerrar">&times;</button>
+        <svg th:replace="~{fragmentos :: iconoAlerta}"></svg>
+        <p id="textoMensaje" th:text="${mensaje}">El usuario o la contraseña no son válidos</p>
+    </div>
+</div>
+</body>
+</html>

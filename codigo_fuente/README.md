@@ -2,6 +2,7 @@
 
 TP de Diseño de Sistemas (UTN-FRSF). Implementa:
 
+- **CU001 – Autenticar Usuario**: pantalla inicial; consultor contra el LDAP, candidato con documento y clave
 - **CU020 – Gestionar Preguntas** (etapa 7)
 - **CU028 – Emitir orden de mérito** (etapa 7)
 - **CU021 – Dar de alta Pregunta** (etapa 8)
@@ -119,8 +120,30 @@ Tomcat started on port 8080 (http) with context path '/'
 Started GestionEvaluacionesApplication in ... seconds
 ```
 
-Abrir **http://localhost:8080** → menú con *Gestionar Preguntas*, *Evaluar Candidatos* y *Emitir Orden de Mérito*.
-El Candidato ingresa a CU026 por **http://localhost:8080/cuestionario** (también hay un enlace en el menú).
+Abrir **http://localhost:8080** → pantalla inicial (CU001) con dos opciones:
+
+- **Ingresar como usuario consultor**: usuario y contraseña, validados contra el LDAP (ver abajo). Lleva al menú
+  (`/menu`) con *Gestionar Preguntas*, *Evaluar Candidatos* y *Emitir Orden de Mérito*. Arriba a la derecha se ve
+  el nombre del consultor y **Cerrar sesión**. Sin sesión, cualquier pantalla del consultor redirige al inicio.
+- **Realizar cuestionario**: tipo y número de documento y clave (ver los casos de CU026 más abajo).
+
+### Usuarios de prueba del LDAP (consultores)
+
+El LDAP de la organización (diagrama de despliegue) se simula con un servidor LDAP embebido de Spring Boot que se
+carga desde `src/main/resources/ldap/consultores.ldif` y escucha en el puerto 8389. No hay usuarios fijos en el código.
+
+| Usuario | Contraseña | Nombre |
+|---|---|---|
+| `LFERRARI` | `Ferrari2026` | LUCIA FERRARI |
+| `TBIANCHI` | `Bianchi.2026` | TOMAS BIANCHI |
+| `CROSSI` | `Rossi#2026` | CARLA ROSSI |
+
+- El usuario se ingresa siempre en mayúsculas (máx. 15 caracteres); la contraseña distingue mayúsculas y minúsculas
+  (máx. 20) y se muestra con asteriscos.
+- Con datos incorrectos aparece "El usuario o la contraseña no son válidos" y los campos quedan en blanco.
+- Para agregar un consultor, sumar una entrada `inetOrgPerson` al `.ldif` (con `uid`, `givenName`, `sn` y
+  `userPassword`) y reiniciar. Para usar un LDAP real, quitar `spring.ldap.embedded` de `application.yml` y
+  configurar `spring.ldap.urls`, `base`, `username` y `password`.
 
 Si el puerto 8080 está ocupado: `mvnw.cmd spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`.
 
@@ -153,9 +176,11 @@ Genera `target/gestion-evaluaciones.war`. Copiarlo a `webapps/` de Tomcat 10; la
 mvnw.cmd test
 ```
 
-Usan una base H2 en memoria (modo PostgreSQL) con el mismo esquema y los mismos datos de prueba; no necesitan
-PostgreSQL. Cubren los gestores de los cinco CU y recorren sus pantallas, incluidos los flujos alternativos.
-Los tests de la etapa 8 se revierten al terminar (`@Transactional`), así que no se afectan entre sí.
+Usan una base H2 en memoria (modo PostgreSQL) con el mismo esquema y los mismos datos de prueba, y el LDAP
+embebido en un puerto libre; no necesitan PostgreSQL. Cubren los gestores de los seis CU y recorren sus pantallas,
+incluidos los flujos alternativos. Las pruebas de las pantallas del consultor corren con una sesión de consultor
+iniciada; `AutenticacionTest` prueba CU001 y el control de acceso sin sesión.
+Los tests de la etapa 8 y de CU001 se revierten al terminar (`@Transactional`), así que no se afectan entre sí.
 
 ---
 
@@ -230,16 +255,20 @@ Con PROGRAMADOR se puede elegir la evaluación 1, la 2 o *Seleccionar todas*.
 
 ```
 src/main/java/ar/edu/utn/frsf/gestionevaluaciones/
-├── boundary/   Pantallas (controllers): PantallaGestionPreguntas, PantallaAltaPregunta, PantallaEvaluarCandidatos,
-│               PantallaCompletarCuestionario, PantallaOrdenMerito, PantallaMenuPrincipal
-├── control/    Gestores (@Service): GestorPreguntas, GestorCompetencias, GestorFactores, GestorOpcionesRespuesta,
-│               GestorCandidatos, GestorEvaluaciones, GestorCuestionarios, GestorPuestos, GestorEmpresas, GestorReportes
-├── entity/     Modelo de dominio (JPA)
+├── boundary/   Pantallas (controllers): PantallaAutenticacion, PantallaMenuPrincipal, PantallaGestionPreguntas,
+│               PantallaAltaPregunta, PantallaEvaluarCandidatos, PantallaCompletarCuestionario, PantallaOrdenMerito;
+│               InterceptorSesionConsultor y ConfiguracionWeb (control de sesión del consultor)
+├── control/    Gestores (@Service): GestorAutenticacion, GestorPreguntas, GestorCompetencias, GestorFactores,
+│               GestorOpcionesRespuesta, GestorCandidatos, GestorEvaluaciones, GestorCuestionarios, GestorPuestos,
+│               GestorEmpresas, GestorReportes
+├── entity/     Modelo de dominio (JPA); Consultor no se persiste (sus datos vienen del LDAP)
+├── interfaces/ IAutenticable (la implementa Candidato)
 ├── dto/        entrada/, salida/ y excel/
 └── dao/        IDAO<T, ID> y un DAO por entidad, implementado con EntityManager
 src/main/resources/
 ├── boundary/templates/   Templates Thymeleaf de las pantallas
 ├── static/               CSS y JS de las pantallas
+├── ldap/consultores.ldif Consultores de prueba del LDAP embebido
 ├── esquema_gestion_evaluaciones.sql
 └── data.sql
 ```
@@ -247,7 +276,7 @@ src/main/resources/
 ### Criterios aplicados
 
 - Los nombres de clases, métodos, parámetros y DTOs son los del diagrama de clases. Cada mensaje de los
-  diagramas de secuencia de CU020 y CU028 tiene su método con el mismo nombre.
+  diagramas de secuencia (CU001, CU020, CU021, CU025, CU026 y CU028) tiene su método con el mismo nombre.
 - Un gestor solo usa su propio DAO; con las demás entidades se comunica a través del gestor correspondiente.
   `GestorReportes` no usa ningún DAO.
 - Las pantallas solo reciben y envían DTOs (`spring.jpa.open-in-view: false` impide que una entidad llegue a la vista).
@@ -258,7 +287,9 @@ src/main/resources/
 - Puntaje del orden de mérito = suma de los `ResultadoCompetencia` de las competencias del puesto. Un
   candidato cumple los mínimos si tiene resultado en todas las competencias del puesto y en cada una
   alcanza la ponderación mínima.
-- Mientras no exista CU001 (autenticación), el nombre del consultor se configura en `app.consultor.nombre`.
+- CU001: el consultor se valida contra el LDAP; el candidato, por documento y por `Candidato.validarCredenciales`
+  (vía `IAutenticable`), que busca entre sus cuestionarios uno ACTIVO o EN_PROCESO con esa clave. Luego CU026 vuelve
+  a validar con el mismo criterio y mensaje, y recién ahí registra el acceso. A CU026 solo se llega desde CU001.
 - La "alerta auditiva" de los diagramas es un sonido corto generado en el navegador (Web Audio).
 - CU025: el Excel (.xls) se arma en la pantalla a partir de `ExportacionCandidatosExcelDTO` y se descarga desde el
   navegador; eso reemplaza la selección de carpeta destino.

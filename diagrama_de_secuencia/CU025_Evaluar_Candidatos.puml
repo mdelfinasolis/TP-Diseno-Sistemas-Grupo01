@@ -52,15 +52,15 @@ Pantalla --> Consultor : mostrar candidatos encontrados
 
 Consultor -> Pantalla : seleccionarCandidatos()
 
-alt [no seleccionó candidatos]
+alt no seleccionó candidatos
     Pantalla --> Consultor : mostrar mensaje\n"Se debe seleccionar al menos un candidato."
 
-else [seleccionó candidatos]
+else seleccionó candidatos
 
     Consultor -> Pantalla : agregar()
     Pantalla --> Consultor : actualizar grilla\n"Candidatos a evaluar"
 
-    opt [actor desea quitar candidatos]
+    opt actor desea quitar candidatos
         Consultor -> Pantalla : quitar()
         Pantalla --> Consultor : actualizar grilla
     end
@@ -88,7 +88,7 @@ else [seleccionó candidatos]
     GE --> Pantalla : List<CandidatoEvaluadoDTO>\n(candidatos no evaluables)
     deactivate GE
 
-    alt [la lista de candidatos no evaluables no está vacía]
+    alt la lista de candidatos no evaluables no está vacía
 
         Pantalla --> Consultor : mostrar candidatos que\nno pueden ser evaluados nuevamente
 
@@ -98,7 +98,7 @@ else [seleccionó candidatos]
         para poder quitarlos.
         end note
 
-    else [ningún candidato posee cuestionario activo/en proceso]
+    else ningún candidato posee cuestionario activo/en proceso
 
         ' =================================================
         ' SELECCIONAR PUESTO
@@ -131,7 +131,7 @@ else [seleccionó candidatos]
         GP --> GE : List<CompetenciaRequeridaDTO>
         deactivate GP
 
-        loop [por cada CompetenciaRequeridaDTO]
+        loop por cada CompetenciaRequeridaDTO
 
             GE -> GF : buscarFactores(filtros: FiltroFactorEntradaDTO)
             activate GF
@@ -159,7 +159,7 @@ else [seleccionó candidatos]
 
         Pantalla --> Consultor : mostrar competencias requeridas
 
-        alt [alguna CompetenciaRequeridaDTO tiene evaluable = false]
+        alt alguna CompetenciaRequeridaDTO tiene evaluable = false
 
             Pantalla --> Consultor : mostrar competencias\nno evaluables
 
@@ -170,15 +170,15 @@ else [seleccionó candidatos]
             un factor con 2 o más preguntas (enunciado, 9.A).
             end note
 
-        else [todas las competencias pueden evaluarse]
+        else todas las competencias pueden evaluarse
 
             Consultor -> Pantalla : siguiente()
 
-            alt [no se seleccionó puesto]
+            alt no se seleccionó puesto
 
                 Pantalla --> Consultor : mostrar mensaje\n"Se debe seleccionar al menos una función o puesto."
 
-            else [puesto seleccionado]
+            else puesto seleccionado
 
                 ' =========================================
                 ' GENERAR CLAVES (Corrección N2 + criterio general)
@@ -187,7 +187,7 @@ else [seleccionó candidatos]
                 Pantalla -> GE : generarClaves(nrosCandidatos: List<int>)
                 activate GE
 
-                loop [por cada candidato]
+                loop por cada candidato
                     GE -> GCu : generarClave()
                     activate GCu
                     GCu --> GE : String
@@ -203,12 +203,12 @@ else [seleccionó candidatos]
                 ' FINALIZAR / CANCELAR
                 ' =========================================
 
-                alt [actor presiona Cancelar]
+                alt actor presiona Cancelar
 
                     Consultor -> Pantalla : cancelar()
                     Pantalla --> Consultor : volver a pantalla principal
 
-                else [actor presiona Finalizar]
+                else actor presiona Finalizar
 
                     Consultor -> Pantalla : finalizar()
 
@@ -260,7 +260,7 @@ else [seleccionó candidatos]
                     ' GENERAR CUESTIONARIOS (Corrección N1)
                     ' =====================================
 
-                    loop [por cada CandidatoClaveDTO en datos.candidatos]
+                    loop por cada CandidatoClaveDTO en datos.candidatos
 
                         GE -> GC : obtenerCandidato(nroCandidato)
                         activate GC
@@ -303,16 +303,16 @@ else [seleccionó candidatos]
                     ' EXPORTACIÓN OPCIONAL
                     ' =====================================
 
-                    opt [desea exportar candidatos y claves]
+                    opt desea exportar candidatos y claves
 
                         Pantalla --> Consultor : solicitar carpeta destino
 
-                        alt [actor cancela selección de carpeta]
+                        alt actor cancela selección de carpeta
 
                             Consultor -> Pantalla : cancelar()
                             Pantalla --> Consultor : volver a opción de exportación
 
-                        else [actor selecciona carpeta]
+                        else actor selecciona carpeta
 
                             Pantalla -> GE : exportarCandidatosConClaves(datos: ExportarClavesExcelEntradaDTO)
                             activate GE

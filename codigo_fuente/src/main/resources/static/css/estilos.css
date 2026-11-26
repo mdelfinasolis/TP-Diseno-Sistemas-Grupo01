@@ -238,7 +238,27 @@ textarea {
     padding: 4px 2px; font: inherit; font-size: 13px; color: var(--gris-texto);
     text-transform: uppercase; background: transparent;
 }
-input[type="password"] { text-transform: uppercase; }
+input[type="password"]:not([data-sin-mayusculas]) { text-transform: uppercase; }
+
+/* CU001: pantalla inicial y cierre de sesión */
+.pantalla-ingreso { max-width: 720px; }
+.opciones-acceso { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+.opcion-acceso {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+    padding: 24px 18px; border: 1px solid var(--naranja-borde); border-radius: 12px;
+    text-decoration: none; color: var(--gris-texto); background: #fff;
+}
+.opcion-acceso:hover, .opcion-acceso:focus-visible { background: var(--naranja-claro); outline: none; }
+.opcion-acceso svg { width: 40px; height: 40px; color: var(--naranja); }
+.opcion-acceso strong { color: var(--naranja); font-size: 15px; font-weight: 600; }
+.opcion-acceso span { font-size: 12px; color: var(--gris-suave); }
+.criterios-ingreso .campo { max-width: 300px; }
+.cerrar-sesion {
+    margin-left: 8px; font-size: 11px; color: var(--naranja); text-decoration: none;
+    border: 1px solid var(--naranja-borde); border-radius: 999px; padding: 2px 10px;
+}
+.cerrar-sesion:hover { background: var(--naranja-claro); }
+@media (max-width: 600px) { .opciones-acceso { grid-template-columns: 1fr; } }
 .campo-ancho { flex: 1.6 1 0; }
 .dos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
 .dos-columnas .campo + .ayuda-campo { margin-bottom: 10px; }
