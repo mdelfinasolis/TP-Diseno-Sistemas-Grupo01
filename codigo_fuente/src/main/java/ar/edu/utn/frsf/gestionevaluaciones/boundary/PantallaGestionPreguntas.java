@@ -26,7 +26,7 @@ import java.util.Locale;
 
 /**
  * CU020 - Gestionar Preguntas. Solo recibe y envía DTOs.
- * Los botones Nuevo / Modificar / Eliminar invocan CU021 / CU022 / CU023 (por ahora "en construcción");
+ * Los botones Nuevo / Modificar / Eliminar invocan CU021 / CU022 / CU023 (CU022 y CU023 se muestran "en construcción");
  * al volver de CU022 o CU023 la grilla se actualiza con buscarPreguntas(filtros).
  */
 @Controller

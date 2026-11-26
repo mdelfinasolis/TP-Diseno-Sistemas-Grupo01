@@ -1,13 +1,13 @@
-# Gestión de Evaluaciones – Etapas 7 y 8
+# Gestión de Evaluaciones – TP Diseño de Sistemas 2026
 
 TP de Diseño de Sistemas (UTN-FRSF). Implementa:
 
 - **CU001 – Autenticar Usuario**: pantalla inicial; consultor contra el LDAP, candidato con documento y clave
-- **CU020 – Gestionar Preguntas** (etapa 7)
-- **CU028 – Emitir orden de mérito** (etapa 7)
-- **CU021 – Dar de alta Pregunta** (etapa 8)
-- **CU025 – Evaluar Candidatos** (etapa 8)
-- **CU026 – Completar Cuestionario** (etapa 8), con el ingreso del Candidato de CU001 3.A
+- **CU020 – Gestionar Preguntas**
+- **CU021 – Dar de alta Pregunta**
+- **CU025 – Evaluar Candidatos**
+- **CU026 – Completar Cuestionario**, con el ingreso del Candidato de CU001 3.A
+- **CU028 – Emitir orden de mérito**
 
 CU022, CU023 y CU033 (Generar con IA) se muestran como pantallas "en construcción".
 
@@ -180,7 +180,7 @@ Usan una base H2 en memoria (modo PostgreSQL) con el mismo esquema y los mismos 
 embebido en un puerto libre; no necesitan PostgreSQL. Cubren los gestores de los seis CU y recorren sus pantallas,
 incluidos los flujos alternativos. Las pruebas de las pantallas del consultor corren con una sesión de consultor
 iniciada; `AutenticacionTest` prueba CU001 y el control de acceso sin sesión.
-Los tests de la etapa 8 y de CU001 se revierten al terminar (`@Transactional`), así que no se afectan entre sí.
+Los tests de CU001, CU021, CU025 y CU026 se revierten al terminar (`@Transactional`), así que no se afectan entre sí.
 
 ---
 

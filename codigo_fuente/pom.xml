@@ -17,7 +17,7 @@
     <!-- Diagrama de despliegue: gestion-evaluaciones.war sobre Tomcat 10 / JVM 21 -->
     <packaging>war</packaging>
     <name>gestion-evaluaciones</name>
-    <description>TP Diseño de Sistemas - Etapa 7: CU020 Gestionar Preguntas y CU028 Emitir orden de mérito</description>
+    <description>TP Diseño de Sistemas 2026 - Gestión de Evaluaciones: CU001, CU020, CU021, CU025, CU026 y CU028</description>
 
     <properties>
         <java.version>21</java.version>
