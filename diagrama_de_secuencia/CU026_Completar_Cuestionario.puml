@@ -1,0 +1,611 @@
+@startuml
+title Entrega 6 - Diagrama de Secuencia CU026 - Completar Cuestionario
+
+autonumber
+
+actor Candidato
+boundary "PantallaCompletarCuestionario" as Pantalla
+control "GestorCuestionarios" as Gestor
+control "GestorPreguntas" as GPreg
+database "CuestionarioDAO" as CuestionarioDAO
+database "PreguntaDAO" as PreguntaDAO
+entity "Cuestionario" as Cu
+entity "DetalleCuestionario" as Det
+entity "Candidato" as Cand
+entity "Evaluacion" as Ev
+entity "Puesto" as Pu
+entity "PuestoCompetencia" as PCo
+entity "Competencia" as Comp
+entity "PreguntaCuestionario" as PC
+entity "Pregunta" as Preg
+entity "OpcionRespuesta" as Opcion
+entity "ResultadoFactor" as RF
+entity "ResultadoCompetencia" as RC
+
+' =====================================================
+' INICIO: ACCESO Y VALIDACIONES
+' =====================================================
+
+Candidato -> Pantalla : completarCuestionario()
+activate Pantalla
+
+Pantalla -> Gestor : obtenerCuestionario(datos: LoginCandidatoEntradaDTO)
+activate Gestor
+
+Gestor -> CuestionarioDAO : buscarPorClave(claveIngreso)
+activate CuestionarioDAO
+CuestionarioDAO --> Gestor : Cuestionario
+deactivate CuestionarioDAO
+
+opt [existe el cuestionario]
+    Gestor -> Cu : getCandidato()
+    activate Cu
+    Cu --> Gestor : Candidato
+    deactivate Cu
+
+    Gestor -> Cand : coincideDocumento(tipoDocumento, nroDocumento)
+    activate Cand
+    Cand --> Gestor : boolean
+    deactivate Cand
+end
+
+alt [no existe el cuestionario, el documento no coincide\no el cuestionario no está ACTIVO ni EN_PROCESO]
+
+    Gestor --> Pantalla : CuestionarioSalidaDTO(valido = false)
+
+    Pantalla -> Pantalla : mostrarMensaje("Los datos ingresados no son válidos\no no existe un cuestionario para el Candidato")
+    Pantalla --> Candidato : mensaje de error y campos en blanco
+
+    note right of Pantalla
+    CU001, flujo 3.A.2: el actor cierra
+    el mensaje y vuelve a ingresar los datos.
+    end note
+
+else [datos válidos]
+
+Gestor -> Cu : getDetalle()
+activate Cu
+Cu --> Gestor : DetalleCuestionario
+deactivate Cu
+
+Gestor -> Det : registrarAcceso(fechaHoraActual)
+note right of Det
+Incrementa cantidadAccesos
+y actualiza ultimoIngreso.
+end note
+
+note right of Gestor
+estaVencido:
+- ACTIVO: superó el plazo para comenzar
+  (repositorio de configuraciones) -> SIN_CONTESTAR
+- EN_PROCESO: ahora - fechaInicio > tiempoMaximo
+  del cuestionario -> INCOMPLETO
+superoMaximoAccesos: solo para EN_PROCESO.
+end note
+
+Gestor -> Gestor : superoMaximoAccesos(cuestionario)
+Gestor -> Gestor : estaVencido(cuestionario)
+
+alt [superó cantidad máxima de accesos o el tiempo máximo]
+
+    Gestor -> Det : setEstado(ESTADOCUESTIONARIO.INCOMPLETO)
+    Gestor -> Det : registrarFin(fechaHoraActual)
+
+    Gestor -> CuestionarioDAO : modificar(cuestionario)
+    activate CuestionarioDAO
+    CuestionarioDAO --> Gestor : void
+    deactivate CuestionarioDAO
+
+    Gestor --> Pantalla : CuestionarioSalidaDTO(estado = INCOMPLETO)
+    deactivate Gestor
+
+    Pantalla -> Pantalla : mostrarMensaje("Cantidad máxima de accesos alcanzada."\no "Tiempo máximo alcanzado.")
+    Pantalla -> Pantalla : emitirAlertaAuditiva()
+    Pantalla --> Candidato : mensaje de cuestionario incompleto
+
+else [cuestionario ACTIVO venció antes de comenzar]
+
+    Gestor -> Det : setEstado(ESTADOCUESTIONARIO.SIN_CONTESTAR)
+    Gestor -> Det : registrarFin(fechaHoraActual)
+
+    Gestor -> CuestionarioDAO : modificar(cuestionario)
+    activate CuestionarioDAO
+    CuestionarioDAO --> Gestor : void
+    deactivate CuestionarioDAO
+
+    Gestor --> Pantalla : CuestionarioSalidaDTO(estado = SIN_CONTESTAR)
+    deactivate Gestor
+
+    Pantalla -> Pantalla : mostrarMensaje("Tiempo de espera alcanzado.")
+    Pantalla -> Pantalla : emitirAlertaAuditiva()
+    Pantalla --> Candidato : mensaje de cuestionario no disponible
+
+else [cuestionario puede continuar]
+
+    Gestor -> CuestionarioDAO : modificar(cuestionario)
+    activate CuestionarioDAO
+    CuestionarioDAO --> Gestor : void
+    deactivate CuestionarioDAO
+
+    alt [estado EN_PROCESO]
+
+        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO,\nbloqueActual = primer bloque pendiente)
+        deactivate Gestor
+
+        note right of Pantalla
+        Se retoma el cuestionario ya persistido.
+        NO se modifican las preguntas asignadas.
+        end note
+
+    else [estado ACTIVO - primer ingreso]
+
+        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = ACTIVO)
+        deactivate Gestor
+
+        Pantalla -> Pantalla : mostrarInstrucciones()
+        Pantalla --> Candidato : instrucciones
+
+        alt [actor presiona Cancelar]
+
+            Candidato -> Pantalla : cancelar()
+            Pantalla --> Candidato : fin del CU
+
+            break [CU finalizado]
+            end
+
+        else [actor presiona Aceptar]
+
+            Candidato -> Pantalla : aceptar()
+
+            Pantalla -> Gestor : iniciarCuestionario(claveCuestionario)
+            activate Gestor
+
+            Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+            activate CuestionarioDAO
+            CuestionarioDAO --> Gestor : Cuestionario
+            deactivate CuestionarioDAO
+
+            ' -------------------------------------------------
+            ' Paso 3 del CU: asignación aleatoria de preguntas (1)
+            ' -------------------------------------------------
+
+            Gestor -> Cu : getEvaluacion()
+            activate Cu
+            Cu --> Gestor : Evaluacion
+            deactivate Cu
+
+            Gestor -> Ev : getPuesto()
+            activate Ev
+            Ev --> Gestor : Puesto
+            deactivate Ev
+
+            Gestor -> Ev : getCantPreguntasPorBloque()
+            activate Ev
+            Ev --> Gestor : int
+            deactivate Ev
+
+            Gestor -> Pu : getCompetencias()
+            activate Pu
+            Pu --> Gestor : List<PuestoCompetencia>
+            deactivate Pu
+
+            loop [por cada PuestoCompetencia]
+
+                Gestor -> PCo : getCompetencia()
+                activate PCo
+                PCo --> Gestor : Competencia
+                deactivate PCo
+
+                Gestor -> Comp : getFactores()
+                activate Comp
+                Comp --> Gestor : List<Factor>
+                deactivate Comp
+
+                loop [por cada factor]
+
+                    Gestor -> GPreg : buscarPorFactor(codigoFactor)
+                    activate GPreg
+                    GPreg -> PreguntaDAO : buscarPorFactor(codigoFactor)
+                    activate PreguntaDAO
+                    PreguntaDAO --> GPreg : List<Pregunta>
+                    deactivate PreguntaDAO
+                    GPreg --> Gestor : List<Pregunta>
+                    deactivate GPreg
+
+                    opt [el factor tiene al menos 2 preguntas]
+                        Gestor -> Gestor : seleccionarPreguntasAleatorias(preguntas, 2)
+                    end
+
+                end
+            end
+
+            note right of Gestor
+            Se mezclan al azar las preguntas elegidas
+            de todos los factores y competencias y se
+            agrupan en bloques de cantPreguntasPorBloque.
+            end note
+
+            loop [por cada pregunta elegida, en orden aleatorio]
+                create PC
+                Gestor -> PC : <<create>>\nPreguntaCuestionario(pregunta, orden, nroBloque)
+                Gestor -> Cu : agregarPreguntaCuestionario(preguntaCuestionario)
+            end
+
+            Gestor -> Cu : getDetalle()
+            activate Cu
+            Cu --> Gestor : DetalleCuestionario
+            deactivate Cu
+
+            Gestor -> Det : registrarInicio(fechaHoraActual)
+            Gestor -> Det : setEstado(ESTADOCUESTIONARIO.EN_PROCESO)
+
+            Gestor -> CuestionarioDAO : modificar(cuestionario)
+            activate CuestionarioDAO
+            CuestionarioDAO --> Gestor : void
+            deactivate CuestionarioDAO
+
+            Gestor --> Pantalla : void
+            deactivate Gestor
+
+        end
+    end
+
+    ' =====================================================
+    ' WIZARD DE BLOQUES
+    ' =====================================================
+
+    loop [mientras existan bloques pendientes]
+
+        Pantalla -> Gestor : obtenerBloque(datos: ObtenerBloqueCuestionarioEntradaDTO)
+        activate Gestor
+        Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : Cuestionario
+        deactivate CuestionarioDAO
+        Gestor -> Cu : getPreguntasBloque(nroBloque)
+        activate Cu
+        Cu --> Gestor : List<PreguntaCuestionario>
+        deactivate Cu
+        Gestor --> Pantalla : BloqueCuestionarioDTO
+        deactivate Gestor
+
+        Pantalla -> Gestor : listarPreguntasBloque(datos: ObtenerBloqueCuestionarioEntradaDTO)
+        activate Gestor
+        Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : Cuestionario
+        deactivate CuestionarioDAO
+
+        Gestor -> Cu : getPreguntasBloque(nroBloque)
+        activate Cu
+        Cu --> Gestor : List<PreguntaCuestionario>
+        deactivate Cu
+
+        loop [por cada PreguntaCuestionario del bloque]
+            Gestor -> PC : getPregunta()
+            activate PC
+            PC --> Gestor : Pregunta
+            deactivate PC
+        end
+
+        note right of Gestor
+        Las preguntas del bloque se obtienen de las
+        PreguntaCuestionario asignadas al crear el
+        cuestionario (orden y nroBloque), no de PreguntaDAO.
+        end note
+
+        Gestor --> Pantalla : List<PreguntaCuestionarioDTO>
+        deactivate Gestor
+
+        loop [por cada pregunta]
+            Pantalla -> Gestor : listarOpcionesPregunta(codigoPregunta)
+            activate Gestor
+
+            Gestor -> GPreg : obtenerPregunta(codigoPregunta)
+            activate GPreg
+            GPreg -> PreguntaDAO : buscarPorId(codigoPregunta)
+            activate PreguntaDAO
+            PreguntaDAO --> GPreg : Pregunta
+            deactivate PreguntaDAO
+            GPreg --> Gestor : Pregunta
+            deactivate GPreg
+
+            Gestor -> Preg : getOpcionRespuesta()
+            activate Preg
+            Preg --> Gestor : OpcionRespuesta
+            deactivate Preg
+
+            Gestor -> Opcion : getItems()
+            activate Opcion
+            Opcion --> Gestor : List<ItemOpcion>
+            deactivate Opcion
+
+            Gestor --> Pantalla : List<OpcionCuestionarioDTO>
+            deactivate Gestor
+        end
+
+        Pantalla -> Pantalla : mostrarBloque()
+        Pantalla --> Candidato : bloque con preguntas y opciones
+
+        loop [hasta completar el bloque actual]
+
+            Candidato -> Pantalla : responderPreguntas()
+
+            alt [actor abandona el cuestionario]
+
+                Candidato -> Pantalla : cancelar()
+
+                note right of Pantalla
+                Los bloques ya guardados permanecen.
+                El cuestionario queda EN_PROCESO.
+                end note
+
+                Pantalla --> Candidato : fin del CU
+
+                break [abandona temporalmente]
+                end
+
+            else [actor presiona Siguiente / Finalizar]
+
+                Candidato -> Pantalla : siguiente()
+                note right of Pantalla
+                En el último bloque el botón es
+                Finalizar (finalizar()).
+                end note
+                Pantalla -> Pantalla : validarPreguntasRespondidas()
+
+                alt [faltan respuestas]
+
+                    Pantalla -> Pantalla : mostrarPreguntasSinResponder()
+                    Pantalla -> Pantalla : emitirAlertaAuditiva()
+                    Pantalla --> Candidato : preguntas sin responder resaltadas
+
+                    note right of Pantalla
+                    Se mantiene el MISMO bloque
+                    y las respuestas ya ingresadas.
+                    end note
+
+                else [todas las preguntas fueron respondidas]
+
+                    Pantalla -> Gestor : verificarVigencia(claveCuestionario)
+                    activate Gestor
+
+                    Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+                    activate CuestionarioDAO
+                    CuestionarioDAO --> Gestor : Cuestionario
+                    deactivate CuestionarioDAO
+
+                    Gestor -> Gestor : estaVencido(cuestionario)
+
+                    alt [cuestionario dejó de estar vigente]
+
+                        Gestor -> Cu : getDetalle()
+                        activate Cu
+                        Cu --> Gestor : DetalleCuestionario
+                        deactivate Cu
+                        Gestor -> Det : setEstado(ESTADOCUESTIONARIO.INCOMPLETO)
+                        Gestor -> Det : registrarFin(fechaHoraActual)
+
+                        Gestor -> CuestionarioDAO : modificar(cuestionario)
+                        activate CuestionarioDAO
+                        CuestionarioDAO --> Gestor : void
+                        deactivate CuestionarioDAO
+
+                        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = INCOMPLETO)
+                        deactivate Gestor
+
+                        Pantalla -> Pantalla : mostrarMensaje("Tiempo máximo alcanzado.")
+                        Pantalla --> Candidato : mensaje de tiempo superado
+
+                        break [CU finalizado por vencimiento]
+                        end
+
+                    else [cuestionario vigente]
+
+                        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO)
+                        deactivate Gestor
+
+                        Pantalla -> Gestor : guardarBloque(datos: GuardarBloqueCuestionarioEntradaDTO)
+                        activate Gestor
+
+                        Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+                        activate CuestionarioDAO
+                        CuestionarioDAO --> Gestor : Cuestionario
+                        deactivate CuestionarioDAO
+
+                        loop [por cada RespuestaPreguntaEntradaDTO del bloque]
+
+                            Gestor -> Cu : getPreguntaCuestionario(codigoPregunta)
+                            activate Cu
+                            Cu --> Gestor : PreguntaCuestionario
+                            deactivate Cu
+
+                            Gestor -> PC : getPregunta()
+                            activate PC
+                            PC --> Gestor : Pregunta
+                            deactivate PC
+
+                            Gestor -> Preg : getOpcionRespuesta()
+                            activate Preg
+                            Preg --> Gestor : OpcionRespuesta
+                            deactivate Preg
+
+                            Gestor -> Opcion : getItem(ordenItemSeleccionado)
+                            activate Opcion
+                            Opcion --> Gestor : ItemOpcion
+                            deactivate Opcion
+
+                            Gestor -> PC : registrarRespuesta(item, fechaHoraActual)
+                            note right of PC
+                            Crea la RespuestaSeleccionada (0..1)
+                            asociada al ItemOpcion elegido.
+                            end note
+                        end
+
+                        Gestor -> CuestionarioDAO : modificar(cuestionario)
+                        activate CuestionarioDAO
+                        CuestionarioDAO --> Gestor : void
+                        deactivate CuestionarioDAO
+
+                        Gestor --> Pantalla : void
+                        deactivate Gestor
+
+                        break [bloque completado]
+                        end
+
+                    end
+                end
+            end
+        end
+    end
+
+    ' =====================================================
+    ' ÚLTIMO BLOQUE - RESULTADOS Y FINALIZACIÓN
+    ' =====================================================
+
+    Pantalla -> Gestor : verificarVigencia(claveCuestionario)
+    activate Gestor
+
+    Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+    activate CuestionarioDAO
+    CuestionarioDAO --> Gestor : Cuestionario
+    deactivate CuestionarioDAO
+
+    Gestor -> Gestor : estaVencido(cuestionario)
+
+    alt [cuestionario vencido]
+
+        Gestor -> Cu : getDetalle()
+        activate Cu
+        Cu --> Gestor : DetalleCuestionario
+        deactivate Cu
+        Gestor -> Det : setEstado(ESTADOCUESTIONARIO.INCOMPLETO)
+        Gestor -> Det : registrarFin(fechaHoraActual)
+
+        Gestor -> CuestionarioDAO : modificar(cuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : void
+        deactivate CuestionarioDAO
+
+        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = INCOMPLETO)
+        deactivate Gestor
+
+        Pantalla -> Pantalla : mostrarMensaje("Tiempo máximo alcanzado.")
+        Pantalla --> Candidato : mensaje de tiempo superado
+
+    else [cuestionario vigente]
+
+        Gestor --> Pantalla : CuestionarioSalidaDTO(estado = EN_PROCESO)
+        deactivate Gestor
+
+        Pantalla -> Gestor : calcularResultados(claveCuestionario)
+        activate Gestor
+
+        Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : Cuestionario
+        deactivate CuestionarioDAO
+
+        Gestor -> Cu : getPreguntas()
+        activate Cu
+        Cu --> Gestor : List<PreguntaCuestionario>
+        deactivate Cu
+
+        loop [por cada PreguntaCuestionario]
+
+            Gestor -> PC : getRespuesta()
+            activate PC
+            PC --> Gestor : RespuestaSeleccionada
+            deactivate PC
+
+            Gestor -> PC : getPregunta()
+            activate PC
+            PC --> Gestor : Pregunta
+            deactivate PC
+
+            Gestor -> Preg : getPonderacion(itemSeleccionado)
+            activate Preg
+            Preg --> Gestor : double
+            deactivate Preg
+
+            note right of Preg
+            La ponderación sale de PreguntaItemPonderacion
+            (pregunta + ítem), no de ItemOpcion.
+            end note
+
+            Gestor -> Preg : getFactor()
+            activate Preg
+            Preg --> Gestor : Factor
+            deactivate Preg
+
+        end
+
+        loop [por cada factor evaluado]
+
+            note right of Gestor
+            total factor = suma de las ponderaciones
+            seleccionadas del factor / 2
+            end note
+
+            create RF
+            Gestor -> RF : <<create>>\nResultadoFactor(factor, total)
+            Gestor -> Cu : agregarResultadoFactor(resultadoFactor)
+
+        end
+
+        loop [por cada competencia evaluada]
+
+            note right of Gestor
+            total competencia = suma de los totales
+            de sus factores / cantidad de factores evaluados
+            end note
+
+            create RC
+            Gestor -> RC : <<create>>\nResultadoCompetencia(competencia, total)
+            Gestor -> Cu : agregarResultadoCompetencia(resultadoCompetencia)
+
+        end
+
+        Gestor -> CuestionarioDAO : modificar(cuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : void
+        deactivate CuestionarioDAO
+
+        Gestor --> Pantalla : void
+        deactivate Gestor
+
+        Pantalla -> Gestor : finalizarCuestionario(datos: FinalizarCuestionarioEntradaDTO)
+        activate Gestor
+
+        Gestor -> CuestionarioDAO : buscarPorClave(claveCuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : Cuestionario
+        deactivate CuestionarioDAO
+
+        Gestor -> Cu : getDetalle()
+        activate Cu
+        Cu --> Gestor : DetalleCuestionario
+        deactivate Cu
+
+        Gestor -> Det : registrarFin(fechaHoraActual)
+        Gestor -> Det : setEstado(ESTADOCUESTIONARIO.COMPLETO)
+
+        Gestor -> CuestionarioDAO : modificar(cuestionario)
+        activate CuestionarioDAO
+        CuestionarioDAO --> Gestor : void
+        deactivate CuestionarioDAO
+
+        Gestor --> Pantalla : ResultadoCuestionarioDTO
+        deactivate Gestor
+
+        Pantalla -> Pantalla : mostrarMensaje("El cuestionario ha sido completado con éxito.")
+        Pantalla --> Candidato : confirmación
+
+    end
+end
+
+end
+
+deactivate Pantalla
+
+@enduml

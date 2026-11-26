@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Listado de Candidatos Evaluados')}"></head>
+<body>
+<!-- CU028 - Emitir Orden de Mérito, pantalla 3: listado (diseño: Imagen 31) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloListado('Listado de Candidatos Evaluados')}"></h1>
+    <nav th:replace="~{fragmentos :: ruta('Orden de Méritos')}"></nav>
+
+    <p class="encabezado-listado">
+        Puesto: <strong th:text="${ordenMerito.nombrePuesto} + ' – ' + ${ordenMerito.empresa}">PROGRAMADOR – FOLDER IT</strong>
+    </p>
+    <p class="fecha-emision"
+       th:text="'Fecha de emisión: ' + ${#temporals.format(ordenMerito.fechaEmision, 'dd/MM/yyyy HH:mm')}">
+        Fecha de emisión: 26/11/2026 10:00</p>
+
+    <section class="recuadro">
+        <!-- COMPLETO + cumple todos los mínimos, ordenado por puntaje -->
+        <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 3h10v4a5 5 0 0 1-10 0V3Z M7 5H3v1a4 4 0 0 0 4 4M17 5h4v1a4 4 0 0 1-4 4M12 12v5M8 21h8l-1-4H9l-1 4Z"
+                      fill="#f26a21"/>
+            </svg>
+            Orden de Mérito
+        </h3>
+        <table class="grilla">
+            <thead>
+            <tr>
+                <th>Apellido</th><th>Nombre</th><th>Tipo de<br>Documento</th><th>Número de<br>Documento</th>
+                <th>Puntaje<br>Obtenido</th><th>Fecha de<br>Inicio</th><th>Fecha de<br>Fin</th><th>Cantidad de<br>Accesos</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${enOrden}">
+                <td th:text="${c.apellido}">GODDIO</td>
+                <td th:text="${c.nombre}">SERENA</td>
+                <td th:text="${c.tipoDocumento}">DNI</td>
+                <td th:text="${c.nroDocumento}">46296828</td>
+                <td th:text="${#numbers.formatDecimal(c.puntajeObtenido, 1, 2, 'COMMA')}">8</td>
+                <td th:text="${#temporals.format(c.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${#temporals.format(c.fechaFin, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${c.cantidadAccesos}">3</td>
+            </tr>
+            <tr class="vacia" th:if="${#lists.isEmpty(enOrden)}">
+                <td colspan="8">Ningún candidato cumple todos los puntajes mínimos.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- COMPLETO + no cumple algún mínimo: fuera del orden de mérito -->
+        <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="11" fill="#f26a21"/>
+                <path d="M12 6.5v7" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="12" cy="17.3" r="1.4" fill="#fff"/>
+            </svg>
+            No alcanzan puntaje mínimo
+        </h3>
+        <table class="grilla">
+            <thead>
+            <tr>
+                <th>Apellido</th><th>Nombre</th><th>Tipo de<br>Documento</th><th>Número de<br>Documento</th>
+                <th>Puntaje<br>Obtenido</th><th>Fecha de<br>Inicio</th><th>Fecha Fin</th><th>Cantidad de<br>Accesos</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${noAlcanzan}">
+                <td th:text="${c.apellido}">IMHOF</td>
+                <td th:text="${c.nombre}">SOFÍA</td>
+                <td th:text="${c.tipoDocumento}">DNI</td>
+                <td th:text="${c.nroDocumento}">46296828</td>
+                <td th:text="${#numbers.formatDecimal(c.puntajeObtenido, 1, 2, 'COMMA')}">2</td>
+                <td th:text="${#temporals.format(c.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${#temporals.format(c.fechaFin, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${c.cantidadAccesos}">3</td>
+            </tr>
+            <tr class="vacia" th:if="${#lists.isEmpty(noAlcanzan)}">
+                <td colspan="8">No hay candidatos en esta sección.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Resto de los estados, agrupados por estado (sin puntaje) -->
+        <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 2h12v2c0 3-2.5 5.5-4.5 8 2 2.5 4.5 5 4.5 8v2H6v-2c0-3 2.5-5.5 4.5-8C8.5 9.5 6 7 6 4V2Z"
+                      fill="#f26a21"/>
+            </svg>
+            Cuestionarios incompletos/sin contestar
+        </h3>
+        <table class="grilla">
+            <thead>
+            <tr>
+                <th>Apellido</th><th>Nombre</th><th>Tipo de<br>Documento</th><th>Número de<br>Documento</th>
+                <th>Fecha de Inicio</th><th>Último<br>Ingreso</th><th>Cantidad de<br>Accesos</th>
+            </tr>
+            </thead>
+            <tbody th:each="grupo : ${otrosPorEstado}">
+            <tr class="fila-subtitulo">
+                <td colspan="7" th:text="${#strings.replace(grupo.key, '_', ' ')}">INCOMPLETO</td>
+            </tr>
+            <tr th:each="c : ${grupo.value}">
+                <td th:text="${c.apellido}">MACIEL</td>
+                <td th:text="${c.nombre}">DONATA</td>
+                <td th:text="${c.tipoDocumento}">DNI</td>
+                <td th:text="${c.nroDocumento}">46296828</td>
+                <td th:text="${#temporals.format(c.fechaInicio, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${#temporals.format(c.ultimoIngreso, 'dd/MM/yyyy HH:mm')}">Fecha/Hora</td>
+                <td th:text="${c.cantidadAccesos}">3</td>
+            </tr>
+            </tbody>
+            <tbody th:if="${#maps.isEmpty(otrosPorEstado)}">
+            <tr class="vacia"><td colspan="7">No hay candidatos en esta sección.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <div class="acciones no-imprimir">
+        <button type="button" class="boton boton-primario" onclick="imprimir()" tabindex="1" autofocus>
+            <svg class="icono-boton" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 8V3h10v5M7 17H4v-7h16v7h-3M7 14h10v7H7v-7Z" fill="none" stroke="currentColor"
+                      stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+            Imprimir
+        </button>
+        <a class="boton boton-contorno" th:href="@{/orden-merito/cancelar}" tabindex="2">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+</body>
+</html>

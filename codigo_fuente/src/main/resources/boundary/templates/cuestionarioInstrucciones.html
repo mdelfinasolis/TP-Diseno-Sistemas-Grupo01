@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Cuestionario - Instrucción')}"></head>
+<body>
+<!-- CU026 - paso 1: instrucciones (diseño: Imagen 18). Textos tomados del repositorio de configuraciones. -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCuestionario('Cuestionario - Instrucción')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/cuestionario}">Ingreso</a> &gt; Realizar Cuestionario &gt; <strong>Cuestionario-Instrucciones</strong>
+    </nav>
+
+    <h2 class="titulo-instrucciones">Lea atentamente las instrucciones antes de comenzar</h2>
+    <div class="caja-instrucciones">
+        <p th:text="${instruccionesEncabezado}">No podrá volver atrás una vez que comience el cuestionario.</p>
+        <ul>
+            <li th:each="item : ${instruccionesItems}" th:text="${item}">Debe responder todas las preguntas.</li>
+        </ul>
+        <p class="tiempo"><span class="etiqueta-tiempo">⏱ Tiempo total:</span>
+            <span th:text="${tiempoTotal}">00:20:00</span></p>
+        <p th:text="'(' + ${instruccionesPie} + ')'">(Si sale antes de terminar...)</p>
+    </div>
+
+    <div class="pie-cuestionario">
+        <span class="estado">Estado Cuestionario: <em>ACTIVO</em></span>
+        <form method="post" th:action="@{/cuestionario/aceptar}" class="acciones">
+            <a class="boton boton-secundario" th:href="@{/cuestionario/cancelar}" tabindex="2">Cancelar</a>
+            <button type="submit" class="boton boton-primario" tabindex="1" data-boton-defecto autofocus>Aceptar</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

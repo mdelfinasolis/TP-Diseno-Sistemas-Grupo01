@@ -1,0 +1,1370 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 10
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' ===================================================
+' Colores
+' ===================================================
+
+skinparam class {
+  BackgroundColor<<boundary>>       #DEEAF1
+  BorderColor<<boundary>>           #2E75B6
+  HeaderBackgroundColor<<boundary>> #9DC3E6
+
+  BackgroundColor<<control>>        #E2EFDA
+  BorderColor<<control>>            #375623
+  HeaderBackgroundColor<<control>>  #A9D18E
+
+  BackgroundColor<<entity>>         #FCE4D6
+  BorderColor<<entity>>             #843C0C
+  HeaderBackgroundColor<<entity>>   #F4B183
+
+  BackgroundColor<<DTO>>            #EADCF8
+  BorderColor<<DTO>>                #7030A0
+  HeaderBackgroundColor<<DTO>>      #C5A3E0
+
+  BackgroundColor<<DAO>>            #E7E6E6
+  BorderColor<<DAO>>                #595959
+  HeaderBackgroundColor<<DAO>>      #BFBFBF
+}
+
+skinparam interface {
+  BackgroundColor #FEF9C3
+  BorderColor #9A7D0A
+}
+
+package "Capa de Presentacion (Boundary)" {
+  class PantallaMenuPrincipal <<boundary>> {
+    + mostrarMenu()
+  }
+
+  class PantallaAutenticacion <<boundary>> {
+    + seleccionarTipoAcceso()
+    + ingresarCredenciales()
+    + mostrarError(mensaje: String)
+  }
+
+  class PantallaImportarCandidatos <<boundary>> {
+    + seleccionarArchivo()
+    + importar()
+    + cancelar()
+  }
+
+  class PantallaExportarResultados <<boundary>> {
+    + buscarFunciones()
+    + exportar()
+    + cancelar()
+  }
+
+  class PantallaGestionEmpresas <<boundary>> {
+    + buscar()
+    + nuevo()
+    + seleccionar(empresa)
+    + modificar()
+    + eliminar()
+    + salir()
+  }
+
+  class PantallaAltaEmpresa <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaModifEmpresa <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaGestionPuestos <<boundary>> {
+    + buscar(filtros)
+    + nuevo()
+    + seleccionar(puesto)
+    + modificar()
+    + eliminar()
+    + salir()
+  }
+
+  class PantallaAltaPuesto <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + agregarCompetencia()
+    + quitarCompetencia()
+    + salir()
+  }
+
+  class PantallaModifPuesto <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + agregarCompetencia()
+    + quitarCompetencia()
+    + salir()
+  }
+
+  class PantallaGestionCompetencias <<boundary>> {
+    + buscar()
+    + nuevo()
+    + seleccionar(competencia)
+    + modificar()
+    + eliminar()
+    + salir()
+  }
+
+  class PantallaAltaCompetencia <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaModifCompetencia <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaGestionFactores <<boundary>> {
+    + buscar()
+    + nuevo()
+    + seleccionar(factor)
+    + modificar()
+    + eliminar()
+    + salir()
+  }
+
+  class PantallaAltaFactor <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaModifFactor <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaGestionPreguntas <<boundary>> {
+    + seleccionarOpcionPreguntas()
+    + seleccionarCompetencia(codigoCompetencia: String)
+    + ingresarFiltros(filtros: FiltroPreguntaEntradaDTO)
+    + buscar()
+    + nuevo()
+    + seleccionar(pregunta)
+    + modificar()
+    + eliminar()
+    + generarConIA()
+    + mostrarGrilla()
+    + volverACriterios()
+    + salir()
+  }
+
+  class PantallaAltaPregunta <<boundary>> {
+    + abrir()
+    + seleccionarCompetencia(codigoCompetencia: String)
+    + seleccionarFactor(codigoFactor: String)
+    + seleccionarOpcionRespuesta(nombreOpcion: String)
+    + aceptar()
+    + cancelar()
+    + generarConIA()
+    + mostrarErrores(errores: List~String~)
+    + emitirAlertaAuditiva()
+    + limpiarFormulario()
+    + seleccionarSI()
+    + seleccionarNO()
+    + salir()
+  }
+
+  class PantallaModifPregunta <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + seleccionarOpcionRespuesta()
+    + generarConIA()
+    + salir()
+  }
+
+  class VentanaGenerarConIA <<boundary>> {
+    + generarPregunta()
+    + aceptar()
+    + cancelar()
+    + cerrar()
+  }
+
+  class PantallaGestionOpcionesRespuesta <<boundary>> {
+    + buscar()
+    + nuevo()
+    + seleccionar(opcionRespuesta)
+    + modificar()
+    + eliminar()
+    + salir()
+  }
+
+  class PantallaAltaOpcionRespuesta <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + agregarOpcion()
+    + quitarOpcion()
+    + salir()
+  }
+
+  class PantallaModifOpcionRespuesta <<boundary>> {
+    + aceptar()
+    + cancelar()
+    + salir()
+  }
+
+  class PantallaEvaluarCandidatos <<boundary>> {
+    + seleccionarOpcionEvaluarCandidatos()
+    + mostrarPantallaCandidatos()
+    + mostrarPantallaPuesto()
+    + mostrarPantallaClaves()
+    + mostrarDialogoExportacion()
+    + exportar()
+    + buscarCandidatos()
+    + seleccionarCandidatos()
+    + siguiente()
+    + seleccionarPuesto()
+    + finalizar()
+    + cancelar()
+    + agregar()
+    + quitar()
+  }
+
+  class PantallaCompletarCuestionario <<boundary>> {
+    + mostrarIngreso()
+    + completarCuestionario()
+    + mostrarInstrucciones()
+    + aceptar()
+    + mostrarBloque()
+    + responderPreguntas()
+    + validarPreguntasRespondidas(): boolean
+    + mostrarPreguntasSinResponder()
+    + siguiente()
+    + finalizar()
+    + cancelar()
+    + mostrarMensaje(mensaje: String)
+    + emitirAlertaAuditiva()
+  }
+
+  class PantallaReporteComparativo <<boundary>> {
+      + buscarFunciones()
+      + seleccionarCandidato()
+      + comparar()
+      + imprimir()
+      + cancelar()
+  }
+
+  class PantallaOrdenMerito <<boundary>> {
+    + seleccionarOpcionOrdenMerito()
+    + mostrarGrillaPuestos()
+    + mostrarEvaluaciones()
+    + ingresarFiltros(filtros: FiltroFuncionEntradaDTO)
+    + buscar()
+    + emitirOrdenMerito(codigoPuesto: String)
+    + seleccionarEvaluaciones()
+    + mostrarOrdenMerito()
+    + mostrarMensaje(mensaje: String)
+    + imprimir()
+    + cancelar()
+  }
+}
+
+package "Capa de Logica de Negocio (Control)" {
+  class GestorAuditoria <<control>> <<facade>> {
+  + registrar(usuario: String, accion: ACCIONAUDITORIA, auditable: IAuditable): void
+  - crearRegistro(usuario: String, accion: ACCIONAUDITORIA, auditable: IAuditable): RegistroAuditoria
+  }
+
+  class GestorAutenticacion <<control>> {
+    + autenticarConsultor(datos: LoginConsultorEntradaDTO): Consultor
+    + autenticarCandidato(datos: LoginCandidatoEntradaDTO): Candidato
+    + validarLDAP(datos: LoginConsultorEntradaDTO): boolean
+  }
+
+  class GestorCandidatos <<control>> {
+    + importarCandidatos(datos: ImportarCandidatosEntradaDTO): ResultadoImportacionDTO
+    + buscarCandidatos(filtros: FiltroCandidatoEntradaDTO): List~CandidatoEvaluadoDTO~
+    + obtenerCandidato(nroCandidato: int): Candidato
+    + obtenerPorDocumento(tipo: TIPODOCUMENTO, nroDocumento: String): Candidato
+  }
+
+  class GestorEvaluaciones <<control>> {
+    + buscarFunciones(filtros: FiltroFuncionEntradaDTO): List~FuncionBusquedaDTO~
+    + evaluarCandidatos(datos: EvaluarCandidatosEntradaDTO): int
+    + listarCandidatosEvaluados(idEvaluacion: int): List~CandidatoEvaluadoDTO~
+    + listarCompetenciasRequeridas(codigoPuesto: String): List~CompetenciaRequeridaDTO~
+    + exportarCandidatosConClaves(datos: ExportarClavesExcelEntradaDTO): ExportacionCandidatosExcelDTO
+    + exportarResultados(datos: ExportarResultadosExcelEntradaDTO): ExportacionResultadosExcelDTO
+    + verificarCuestionariosActivos(nrosCandidatos: List~int~): List~CandidatoEvaluadoDTO~
+    + generarClaves(nrosCandidatos: List~int~): List~CandidatoClaveDTO~
+    + buscarPorPuesto(codigoPuesto: String): List~Evaluacion~
+    - esEvaluable(factores: List~FactorListadoDTO~, cantidades: Map~String, int~): boolean
+  }
+
+  class GestorEmpresas <<control>> {
+    + buscarEmpresas(filtros: FiltroEmpresaEntradaDTO): List~Empresa~
+    + crearEmpresa(datos: EmpresaEntradaDTO): void
+    + modificarEmpresa(datos: EmpresaEntradaDTO): void
+    + darDeBajaEmpresa(id: int): void
+    + obtenerEmpresa(id: int): Empresa
+    + listarEmpresas(): List~EmpresaListadoDTO~
+    + validarDatos(datos: EmpresaEntradaDTO): boolean
+    + validarNombreUnico(nombre: String): boolean
+    + verificarEnUso(id: int): boolean
+  }
+
+  class GestorPuestos <<control>> {
+    + buscarPuestos(filtros: FiltroPuestoEntradaDTO): List~PuestoListadoDTO~
+    + listarCompetenciasRequeridas(codigoPuesto: String): List~CompetenciaRequeridaDTO~
+    + crearPuesto(datos: PuestoEntradaDTO): void
+    + modificarPuesto(datos: PuestoEntradaDTO): void
+    + darDeBajaPuesto(codigo: String): boolean
+    + obtenerPuesto(codigo: String): Puesto
+    + listarPuestos(): List~PuestoListadoDTO~
+    + verificarEnUso(codigo: String): boolean
+    + validarDatos(datos: PuestoEntradaDTO): boolean
+    + validarCodigoUnico(codigo: String): boolean
+    + validarNombreUnico(nombre: String): boolean
+  }
+
+  class GestorCompetencias <<control>> {
+    + buscarCompetencias(filtros: FiltroCompetenciaEntradaDTO): List~CompetenciaListadoDTO~
+    + crearCompetencia(datos: CompetenciaEntradaDTO): void
+    + modificarCompetencia(datos: CompetenciaEntradaDTO): void
+    + darDeBajaCompetencia(codigo: String): void
+    + obtenerCompetencia(codigo: String): Competencia
+    + listarCompetencias(): List~CompetenciaListadoDTO~
+    + validarDatos(datos: CompetenciaEntradaDTO): boolean
+    + validarCodigoUnico(codigo: String): boolean
+    + validarNombreUnico(nombre: String): boolean
+    + verificarEnUso(codigo: String): boolean
+  }
+
+  class GestorFactores <<control>> {
+    + buscarFactores(filtros: FiltroFactorEntradaDTO): List~FactorListadoDTO~
+    + crearFactor(datos: FactorEntradaDTO): void
+    + modificarFactor(datos: FactorEntradaDTO): void
+    + darDeBajaFactor(codigo: String): void
+    + obtenerFactor(codigo: String): Factor
+    + validarDatos(datos: FactorEntradaDTO): boolean
+    + validarCodigoUnico(codigo: String): boolean
+    + validarNombreUnico(nombre: String, competencia: String): boolean
+    + verificarEnUso(codigo: String): boolean
+  }
+
+  class GestorPreguntas <<control>> {
+    + buscarPreguntas(filtros: FiltroPreguntaEntradaDTO): List~PreguntaListadoDTO~
+    + crearPregunta(datos: PreguntaEntradaDTO): MensajeSalidaDTO
+    + modificarPregunta(datos: PreguntaEntradaDTO): void
+    + darDeBajaPregunta(codigo: String): void
+    + generarConIA(datos: SolicitudGeneracionIAEntradaDTO): PreguntaListadoDTO
+    + validarDatos(datos: PreguntaEntradaDTO): List~String~
+    + validarPonderaciones(ponderaciones: List~PonderacionItemEntradaDTO~): List~String~
+    + validarNombreUnico(nombre: String): boolean
+    + validarOpcionRespuesta(nombreOpcionRespuesta: String): boolean
+    + verificarEnUso(codigo: String): boolean
+    + contarPreguntasPorFactor(codigosFactor: List~String~): Map~String, int~
+    + buscarPorFactor(codigoFactor: String): List~Pregunta~
+    + obtenerPregunta(codigo: String): Pregunta
+  }
+
+  class GestorOpcionesRespuesta <<control>> {
+    + buscarOpciones(filtros: FiltroOpcionRespuestaEntradaDTO): List~OpcionRespuestaListadoDTO~
+    + crearOpcion(datos: OpcionRespuestaEntradaDTO): void
+    + modificarOpcion(datos: OpcionRespuestaEntradaDTO): void
+    + darDeBajaOpcion(nombre: String): void
+    + listarOpciones(): List~OpcionRespuestaListadoDTO~
+    + obtenerDetalleOpcion(nombre: String): OpcionRespuestaDetalleDTO
+    + obtenerOpcionRespuesta(nombre: String): OpcionRespuesta
+    + validarDatos(datos: OpcionRespuestaEntradaDTO): boolean
+    + validarNombreUnico(nombre: String): boolean
+    + validarOrdenConsecutivo(items: List~ItemOpcionEntradaDTO~): boolean
+    + validarDescripcionesUnicas(items: List~ItemOpcionEntradaDTO~): boolean
+    + verificarEnUso(nombre: String): boolean
+  }
+
+  class GestorCuestionarios <<control>> {
+    + obtenerCuestionario(datos: LoginCandidatoEntradaDTO): CuestionarioSalidaDTO
+    + obtenerBloque(datos: ObtenerBloqueCuestionarioEntradaDTO): BloqueCuestionarioDTO
+    + listarPreguntasBloque(datos: ObtenerBloqueCuestionarioEntradaDTO): List~PreguntaCuestionarioDTO~
+    + listarOpcionesPregunta(codigoPregunta: String): List~OpcionCuestionarioDTO~
+    + guardarBloque(datos: GuardarBloqueCuestionarioEntradaDTO): void
+    + calcularResultados(claveCuestionario: String): void
+    + finalizarCuestionario(datos: FinalizarCuestionarioEntradaDTO): ResultadoCuestionarioDTO
+    + finalizarVencidos(): void
+    + iniciarCuestionario(claveCuestionario: String): void
+    + verificarVigencia(claveCuestionario: String): CuestionarioSalidaDTO
+    - estaVencido(cuestionario: Cuestionario): boolean
+    - superoMaximoAccesos(cuestionario: Cuestionario): boolean
+    - seleccionarPreguntasAleatorias(preguntas: List~Pregunta~, cantidad: int): List~Pregunta~
+    + buscarCuestionariosActivos(nrosCandidatos: List~int~): List~Cuestionario~
+    + generarClave(): String
+    + generarCuestionario(evaluacion: Evaluacion, candidato: Candidato, clave: String): Cuestionario
+    + buscarPorEvaluacion(idEvaluacion: int): List~Cuestionario~
+    + obtenerPorClave(clave: String): Cuestionario
+  }
+
+  class GestorReportes <<control>> {
+    + buscarFunciones(filtros: FiltroFuncionEntradaDTO): List~FuncionBusquedaDTO~
+    + listarCandidatosEvaluados(codigoPuesto: String): List~CandidatoEvaluadoDTO~
+    + emitirReporteComparativo(datos: ReporteComparativoEntradaDTO): ReporteComparativoDTO
+    + buscarPuestosOrdenMerito(filtros: FiltroFuncionEntradaDTO): List~PuestoOrdenMeritoDTO~
+    + emitirOrdenMerito(datos: OrdenMeritoEntradaDTO): OrdenMeritoDTO
+    + listarEvaluacionesPuesto(codigoPuesto: String): List~EvaluacionListadoDTO~
+  }
+}
+
+package "Modelo de Dominio (Entity)" {
+  abstract class Usuario <<entity>> {
+    - id: int
+    - nombre: String
+    - apellido: String
+  }
+
+  class Consultor <<entity>> {
+    - nombreUsuario: String
+    - contrasena: String
+  }
+
+  class Candidato <<entity>> {
+    + coincideDocumento(tipo: TIPODOCUMENTO, nroDocumento: String): boolean
+    - nroCandidato: int
+    - tipoDocumento: TIPODOCUMENTO
+    - nroDocumento: String
+    - fechaNacimiento: Date
+    - genero: GENERO
+    - nacionalidad: String
+    - email: String
+    - escolaridad: String
+    - eliminado: boolean
+  }
+
+  class Evaluacion <<entity>> {
+    - id: int
+    - fechaCreacion: Date
+    - cantPreguntasPorBloque: int
+    + Evaluacion(puesto: Puesto, fechaCreacion: Date, cantPreguntasPorBloque: int)
+    + getPuesto(): Puesto
+    + getCantPreguntasPorBloque(): int
+    + getCantidadCandidatos(): int
+    + getCuestionarios(): List~Cuestionario~
+  }
+
+  class PuestoCompetencia <<entity>> {
+    - ponderacionMinima: integer {0, 10}
+    + getCompetencia(): Competencia
+    + getPuesto(): Puesto
+  }
+
+  class Competencia <<entity>> {
+    - codigo: String
+    - nombre: String
+    - descripcion: String
+    - tipo: String
+    - eliminada: boolean
+    + getFactores(): List~Factor~
+  }
+
+  class Puesto <<entity>> {
+    - codigo: String
+    - nombre: String
+    - descripcion: String
+    - eliminado: boolean
+    + getCompetencias(): List~PuestoCompetencia~
+    + getEmpresa(): Empresa
+  }
+
+  class Empresa <<entity>> {
+    - id: int
+    - nombre: String
+  }
+
+  class Factor <<entity>> {
+    - codigo: String
+    - nombre: String
+    - descripcion: String
+    - nroOrden: int
+    - eliminado: boolean
+    + getCompetencia(): Competencia
+  }
+
+  class Pregunta <<entity>> {
+    - codigo: String
+    - nombre: String
+    - enunciado: String
+    - descripcion: String
+    - eliminada: boolean
+    + Pregunta(nombre: String, enunciado: String, descripcion: String, factor: Factor, opcionRespuesta: OpcionRespuesta)
+    + agregarPonderacion(ponderacion: PreguntaItemPonderacion): void
+    + getFactor(): Factor
+    + getOpcionRespuesta(): OpcionRespuesta
+    + getPonderacion(item: ItemOpcion): double
+    + getPonderaciones(): List~PreguntaItemPonderacion~
+    + setCodigo(codigo: String): void
+  }
+
+  class OpcionRespuesta <<entity>> {
+    - nombre: String
+    - descripcion: String
+    - eliminada: boolean
+    + getItem(orden: int): ItemOpcion
+    + getItems(): List~ItemOpcion~
+  }
+
+  class ItemOpcion <<entity>> {
+    - orden: int
+    - descripcion: String
+    + getOpcionRespuesta(): OpcionRespuesta
+  }
+
+  class PreguntaItemPonderacion <<entity>> {
+    - ponderacion: double
+    + PreguntaItemPonderacion(pregunta: Pregunta, item: ItemOpcion, ponderacion: double)
+    + getPregunta(): Pregunta
+    + getItem(): ItemOpcion
+  }
+
+  class Cuestionario <<entity>> {
+      - clave: String
+      - tiempoMaximo: int
+      + Cuestionario(evaluacion: Evaluacion, candidato: Candidato, clave: String, tiempoMaximo: int)
+      + getDetalle(): DetalleCuestionario
+      + getCandidato(): Candidato
+      + getClave(): String
+      + getEvaluacion(): Evaluacion
+      + agregarPreguntaCuestionario(pc: PreguntaCuestionario): void
+      + getPreguntasBloque(nroBloque: int): List~PreguntaCuestionario~
+      + getPreguntaCuestionario(codigoPregunta: String): PreguntaCuestionario
+      + getPreguntas(): List~PreguntaCuestionario~
+      + agregarResultadoFactor(resultado: ResultadoFactor): void
+      + agregarResultadoCompetencia(resultado: ResultadoCompetencia): void
+      + getResultadosCompetencia(): List~ResultadoCompetencia~
+      + getResultadosFactor(): List~ResultadoFactor~
+  }
+
+  class RespuestaSeleccionada <<entity>> {
+      - fechaRespuesta: DateTime
+      + RespuestaSeleccionada(item: ItemOpcion, fechaRespuesta: DateTime)
+      + getItem(): ItemOpcion
+  }
+
+  class ResultadoFactor <<entity>> {
+    - total: double
+    + ResultadoFactor(factor: Factor, total: double)
+    + getFactor(): Factor
+  }
+
+  class ResultadoCompetencia <<entity>> {
+    - total: double
+    + ResultadoCompetencia(competencia: Competencia, total: double)
+    + getTotal(): double
+    + getCompetencia(): Competencia
+  }
+
+  class RegistroAuditoria <<entity>> {
+    - id: int
+    - usuarioResponsable: String
+    - fechaHora: DateTime
+    - accion: ACCIONAUDITORIA
+    - tipoEntidad: String
+    - identificadorEntidad: String
+  }
+
+  class PreguntaCuestionario <<entity>> {
+    - orden: int
+    - nroBloque: int
+    + PreguntaCuestionario(pregunta: Pregunta, orden: int, nroBloque: int)
+    + getPregunta(): Pregunta
+    + registrarRespuesta(item: ItemOpcion, fechaRespuesta: DateTime): void
+    + getRespuesta(): RespuestaSeleccionada
+  }
+
+  enum GENERO {
+    H
+    M
+  }
+
+  enum TIPODOCUMENTO {
+    DNI
+    LE
+    LC
+    PP
+  }
+
+  enum ESTADOCUESTIONARIO {
+    ACTIVO
+    EN_PROCESO
+    COMPLETO
+    INCOMPLETO
+    SIN_CONTESTAR
+  }
+
+  enum ACCIONAUDITORIA {
+    ALTA
+    MODIFICACIÓN
+    BAJA
+  }
+
+  class DetalleCuestionario {
+    - fechaInicio: DateTime
+    - fechaFin: DateTime
+    - estado: ESTADOCUESTIONARIO
+    - cantidadAccesos: int
+    - ultimoIngreso: DateTime
+    + DetalleCuestionario(estado: ESTADOCUESTIONARIO)
+    + getEstado(): ESTADOCUESTIONARIO
+    + setEstado(estado: ESTADOCUESTIONARIO): void
+    + registrarAcceso(fechaHora: DateTime): void
+    + registrarInicio(fechaHora: DateTime): void
+    + registrarFin(fechaHora: DateTime): void
+  }
+}
+
+package "DTOs" {
+  package "DTOs de Entrada" {
+    class LoginConsultorEntradaDTO <<DTO>> {
+      - usuario: String
+      - contrasena: String
+    }
+
+    class LoginCandidatoEntradaDTO <<DTO>> {
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - claveIngreso: String
+    }
+
+    class FiltroEmpresaEntradaDTO <<DTO>> {
+      - nombre: String
+    }
+
+    class EmpresaEntradaDTO <<DTO>> {
+      - id: int
+      - nombre: String
+    }
+
+    class FiltroPuestoEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - empresa: String
+    }
+
+    class PuestoEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - descripcion: String
+      - idEmpresa: int
+      - competencias: List~CompetenciaPuestoEntradaDTO~
+    }
+
+    class CompetenciaPuestoEntradaDTO <<DTO>> {
+      - codigoCompetencia: String
+      - ponderacionMinima: int
+    }
+
+    class FiltroCompetenciaEntradaDTO <<DTO>> {
+      - nombre: String
+    }
+
+    class CompetenciaEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - descripcion: String
+      - tipo: String
+    }
+
+    class FiltroFactorEntradaDTO <<DTO>> {
+      - codigoCompetencia: String
+      - nombre: String
+    }
+
+    class FactorEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - descripcion: String
+      - nroOrden: int
+      - codigoCompetencia: String
+    }
+
+    class FiltroPreguntaEntradaDTO <<DTO>> {
+      - codigoCompetencia: String
+      - codigoFactor: String
+      - nombre: String
+    }
+
+    class PreguntaEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - enunciado: String
+      - descripcion: String
+      - codigoFactor: String
+      - nombreOpcionRespuesta: String
+      - ponderaciones: List~PonderacionItemEntradaDTO~
+    }
+
+    class PonderacionItemEntradaDTO <<DTO>> {
+      - ordenItem: int
+      - ponderacion: double
+    }
+
+    class SolicitudGeneracionIAEntradaDTO <<DTO>> {
+      - codigoCompetencia: String
+      - codigoFactor: String
+      - prompt: String
+    }
+
+    class OpcionRespuestaEntradaDTO <<DTO>> {
+      - nombre: String
+      - descripcion: String
+      - items: List~ItemOpcionEntradaDTO~
+    }
+
+    class ItemOpcionEntradaDTO <<DTO>> {
+      - orden: int
+      - descripcion: String
+    }
+
+    class ImportarCandidatosEntradaDTO <<DTO>> {
+      - rutaArchivo: String
+      - nombreArchivo: String
+    }
+
+    class FiltroCandidatoEntradaDTO <<DTO>> {
+      - apellido: String
+      - nombre: String
+      - nroCandidato: int
+    }
+
+    class EvaluarCandidatosEntradaDTO <<DTO>> {
+      - codigoPuesto: String
+      - candidatos: List~CandidatoClaveDTO~
+      - cantPreguntasPorBloque: int
+    }
+
+    class GuardarBloqueCuestionarioEntradaDTO <<DTO>> {
+      - claveCuestionario: String
+      - nroBloque: int
+      - respuestas: List~RespuestaPreguntaEntradaDTO~
+    }
+
+    class RespuestaPreguntaEntradaDTO <<DTO>> {
+      - codigoPregunta: String
+      - ordenItemSeleccionado: int
+    }
+
+    class ReporteComparativoEntradaDTO <<DTO>> {
+      - codigoPuesto: String
+      - nroCandidato: int
+    }
+
+    class OrdenMeritoEntradaDTO <<DTO>> {
+      - codigoPuesto: String
+      - idsEvaluaciones: List~int~
+      - todasLasEvaluaciones: boolean
+    }
+
+    class FiltroFuncionEntradaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - empresa: String
+    }
+
+    class ObtenerBloqueCuestionarioEntradaDTO <<DTO>> {
+      - claveCuestionario: String
+      - nroBloque: int
+    }
+
+    class FinalizarCuestionarioEntradaDTO <<DTO>> {
+      - claveCuestionario: String
+    }
+  }
+
+  package "DTOs de Salida" {
+    class PuestoListadoDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - empresa: String
+    }
+
+    class EmpresaListadoDTO <<DTO>> {
+      - id: int
+      - nombre: String
+    }
+
+    class CompetenciaListadoDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+    }
+
+    class FactorListadoDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - competencia: String
+    }
+
+    class PreguntaListadoDTO <<DTO>> {
+      - codigo: String
+      - competencia: String
+      - factor: String
+      - pregunta: String
+    }
+
+    class OpcionRespuestaListadoDTO <<DTO>> {
+      - nombre: String
+      - descripcion: String
+    }
+
+    class OpcionRespuestaDetalleDTO <<DTO>> {
+      - nombre: String
+      - descripcion: String
+      - items: List~ItemOpcionDTO~
+    }
+
+    class ItemOpcionDTO <<DTO>> {
+      - orden: int
+      - descripcion: String
+    }
+
+    class FuncionBusquedaDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - empresa: String
+    }
+
+    class CandidatoEvaluadoDTO <<DTO>> {
+      - apellido: String
+      - nombre: String
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - nroCandidato: int
+      - fechaFinalizacionCuestionario: Date
+    }
+
+    class ResultadoExportacionDTO <<DTO>> {
+      - nroCandidato: int
+      - apellido: String
+      - nombre: String
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - codigoCompetencia: String
+      - nombreCompetencia: String
+      - resultado: double
+      - nombrePuesto: String
+      - codigoPuesto: String
+      - fechaFinalizacionCuestionario: Date
+    }
+
+    class CompetenciaRequeridaDTO <<DTO>> {
+      - codigoCompetencia: String
+      - competencia: String
+      - ponderacionRequerida: int
+      - evaluable: boolean
+    }
+
+    class CandidatoClaveDTO <<DTO>> {
+      - nroCandidato: int
+      - apellido: String
+      - nombre: String
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - claveIngreso: String
+    }
+
+    class ComparativoCompetenciaDTO <<DTO>> {
+      - competencia: String
+      - valorRequerido: int
+      - valorObtenido: double
+      - cumpleMinimo: boolean
+    }
+
+    class EvaluacionListadoDTO <<DTO>> {
+      - idEvaluacion: int
+      - fechaCreacion: Date
+      - cantidadCandidatos: int
+    }
+
+    class PuestoOrdenMeritoDTO <<DTO>> {
+      - codigo: String
+      - nombre: String
+      - empresa: String
+      - cantidadCandidatos: int
+      - evaluacionesCompletas: int
+    }
+
+    class CandidatoOrdenMeritoDTO <<DTO>> {
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - apellido: String
+      - nombre: String
+      - estadoCuestionario: ESTADOCUESTIONARIO
+      - puntajeObtenido: double
+      - fechaInicio: DateTime
+      - fechaFin: DateTime
+      - ultimoIngreso: DateTime
+      - cantidadAccesos: int
+      - cumpleMinimos: boolean
+    }
+
+    class CuestionarioSalidaDTO <<DTO>> {
+      - nombreCandidato: String
+      - nombrePuesto: String
+      - estado: ESTADOCUESTIONARIO
+      - bloqueActual: int
+      - tiempoMaximo: int
+      - segundosRestantes: int
+      - valido: boolean
+      + {static} invalido(): CuestionarioSalidaDTO
+    }
+
+    class BloqueCuestionarioDTO <<DTO>> {
+      - nroBloque: int
+      - cantidadPreguntas: int
+      - cantidadBloques: int
+    }
+
+    class PreguntaCuestionarioDTO <<DTO>> {
+      - codigoPregunta: String
+      - enunciado: String
+    }
+
+    class OpcionCuestionarioDTO <<DTO>> {
+      - orden: int
+      - descripcion: String
+    }
+
+    class ResultadoCuestionarioDTO <<DTO>> {
+      - estadoFinal: ESTADOCUESTIONARIO
+      - fechaFinalizacion: DateTime
+      - mensaje: String
+    }
+
+    class ResultadoImportacionDTO <<DTO>> {
+      - candidatosCreados: int
+      - candidatosActualizados: int
+      - candidatosEliminados: int
+      - errores: List~String~
+    }
+
+    class MensajeSalidaDTO <<DTO>> {
+      - tipo: String
+      - titulo: String
+      - descripcion: String
+      - errores: List~String~
+    }
+
+    class ReporteComparativoDTO <<DTO>> {
+      - apellidoCandidato: String
+      - nombreCandidato: String
+      - tipoDocumento: TIPODOCUMENTO
+      - nroDocumento: String
+      - nroCandidato: int
+      - codigoPuesto: String
+      - nombrePuesto: String
+      - empresa: String
+      - fechaEmision: DateTime
+      - competencias: List~ComparativoCompetenciaDTO~
+    }
+
+    class OrdenMeritoDTO <<DTO>> {
+      - codigoPuesto: String
+      - nombrePuesto: String
+      - empresa: String
+      - fechaEmision: DateTime
+      - candidatos: List~CandidatoOrdenMeritoDTO~
+    }
+  }
+
+  package "DTOs de Excel" {
+    class ExportarClavesExcelEntradaDTO <<DTO>> {
+      - idEvaluacion: int
+      - rutaDestino: String
+      - nombreArchivo: String
+    }
+
+    class ExportarResultadosExcelEntradaDTO <<DTO>> {
+      - idEvaluacion: int
+      - rutaDestino: String
+      - nombreArchivo: String
+    }
+
+    class ArchivoExcelGeneradoDTO <<DTO>> {
+      - nombreArchivo: String
+      - rutaDestino: String
+      - fechaGeneracion: DateTime
+      - cantidadRegistros: int
+      - mensaje: String
+    }
+
+    class ExportacionCandidatosExcelDTO <<DTO>> {
+      - archivo: ArchivoExcelGeneradoDTO
+      - candidatos: List~CandidatoClaveDTO~
+    }
+
+    class ExportacionResultadosExcelDTO <<DTO>> {
+      - archivo: ArchivoExcelGeneradoDTO
+      - resultados: List~ResultadoExportacionDTO~
+    }
+  }
+
+  package "DTOs de Integracion IA" {
+    class IARequest <<DTO>> {
+      - prompt: String
+    }
+
+    class IAResponse <<DTO>> {
+      - textoGenerado: String
+    }
+  }
+}
+
+package "Capa de Persistencia (DAO)" {
+  interface "IDAO<T, ID>" as IDAO {
+  + guardar(entidad: T): void
+  + modificar(entidad: T): void
+  + eliminarLogico(id: ID): void
+  + buscarPorId(id: ID): T
+  + buscarTodos(): List~T~
+}
+
+  class CandidatoDAO <<DAO>> {
+    + buscarPorFiltros(apellido: String, nombre: String, nroCandidato: int): List~Candidato~
+    + buscarPorTipoYNroDocumento(tipo: TIPODOCUMENTO, nroDoc: String): Candidato
+  }
+
+  class PuestoDAO <<DAO>> {
+    + buscarPorFiltros(codigo: String, nombre: String, empresa: String): List~Puesto~
+    + existeCodigo(codigo: String): boolean
+    + existeNombre(nombre: String): boolean
+    + estaEnUso(codigo: String): boolean
+  }
+
+  class EmpresaDAO <<DAO>> {
+    + buscarPorFiltros(nombre: String): List~Empresa~
+    + existeNombre(nombre: String): boolean
+  }
+
+  class CompetenciaDAO <<DAO>> {
+    + buscarPorNombre(nombre: String): List~Competencia~
+    + existeCodigo(codigo: String): boolean
+    + existeNombre(nombre: String): boolean
+    + estaEnUso(codigo: String): boolean
+  }
+
+  class FactorDAO <<DAO>> {
+    + buscarPorFiltros(competencia: String, nombre: String): List~Factor~
+    + existeCodigo(codigo: String): boolean
+    + existeNombre(nombre: String, competencia: String): boolean
+    + existeNroOrden(competencia: String, nroOrden: int): boolean
+    + estaEnUso(codigo: String): boolean
+  }
+
+  class PreguntaDAO <<DAO>> {
+    + buscarPorFiltros(competencia: String, factor: String, nombre: String): List~Pregunta~
+    + buscarPorFactor(factor: String): List~Pregunta~
+    + existeEnFactor(factor: String, nombre: String, enunciado: String): boolean
+    + estaEnUso(codigo: String): boolean
+    + contarPorFactores(codigosFactor: List~String~): Map~String, int~
+  }
+
+  class OpcionRespuestaDAO <<DAO>> {
+    + buscarPorNombre(nombre: String): List~OpcionRespuesta~
+    + estaEnUso(nombre: String): boolean
+  }
+
+  class EvaluacionDAO <<DAO>> {
+    + buscarPorPuesto(puesto: String): List~Evaluacion~
+  }
+
+  class CuestionarioDAO <<DAO>> {
+    + buscarPorClave(clave: String): Cuestionario
+    + buscarActivoOEnProcesoPorCandidato(candidato: Candidato): Cuestionario
+    + buscarActivosOEnProcesoPorCandidatos(nrosCandidatos: List~int~): List~Cuestionario~
+    + buscarPorEvaluacion(idEvaluacion: int): List~Cuestionario~
+    + buscarVencidos(): List~Cuestionario~
+  }
+
+  class RegistroAuditoriaDAO <<DAO>> {
+    + buscarPorEntidad(entidad: String): List~RegistroAuditoria~
+    + buscarPorUsuario(usuario: String): List~RegistroAuditoria~
+  }
+}
+
+package "Servicios externos, interfaces y patrones" {
+  interface ServicioGeneracionIA {
+    + generarEnunciado(prompt: String): String
+  }
+
+  class ProveedorIAExterno {
+    + ejecutarPrompt(request: IARequest): IAResponse
+  }
+
+  class ProveedorIAAdapter {
+    - proveedor: ProveedorIAExterno
+    + ProveedorIAAdapter(proveedor: ProveedorIAExterno)
+    + generarEnunciado(prompt: String): String
+  }
+
+  interface IAuditable <<(I,#9A7D0A) interface>> {
+    + obtenerTipoEntidad(): String
+    + obtenerIdentificador(): String
+  }
+
+  interface IGenerableConIA <<(I,#9A7D0A) interface>> {
+  + generarConIA(datos: SolicitudGeneracionIAEntradaDTO): PreguntaListadoDTO
+  }
+
+  interface IAutenticable <<(I,#9A7D0A) interface>> {
+    + validarCredenciales(clave: String): boolean
+  }
+}
+
+' ===================================================
+' Relaciones entre clases y paquetes
+' ===================================================
+
+Puesto "1" *-- "1..*" PuestoCompetencia : tiene >
+Competencia "1" *-- "1..*" Factor : compone >
+Factor "1" *-- "0..*" Pregunta : contiene >
+OpcionRespuesta "1" *-- "2..*" ItemOpcion : define >
+Evaluacion "1" *-- "1..*" Cuestionario : genera >
+Cuestionario "1" *-- "0..*" ResultadoFactor : calcula >
+Cuestionario "1" *-- "0..*" ResultadoCompetencia : calcula >
+Usuario <|-- Consultor
+Usuario <|-- Candidato
+Empresa "1" -- "0..*" Puesto : solicita >
+PuestoCompetencia "0..*" --> "1" Competencia : referencia
+Pregunta "0..*" --> "1" OpcionRespuesta : usa >
+Evaluacion "0..*" --> "1" Puesto : evalua >
+EvaluarCandidatosEntradaDTO ..> CandidatoClaveDTO : contiene
+Cuestionario "0..*" --> "1" Candidato : pertenece a
+PreguntaCuestionario "0..*" --> "1" Pregunta : referencia
+RespuestaSeleccionada "0..*" --> "1" ItemOpcion : selecciona
+ResultadoFactor "0..*" --> "1" Factor : corresponde a
+ResultadoCompetencia "0..*" --> "1" Competencia : corresponde a
+PantallaGestionEmpresas .. PantallaAltaEmpresa
+PantallaGestionEmpresas .. PantallaModifEmpresa
+Cuestionario "1" *-- "1..*" PreguntaCuestionario : incluye >
+PreguntaCuestionario "1" -- "0..1" RespuestaSeleccionada : posee >
+Pregunta "0..*" -- "2..*" ItemOpcion
+(Pregunta, ItemOpcion) .. PreguntaItemPonderacion
+IGenerableConIA ..> SolicitudGeneracionIAEntradaDTO : recibe
+IGenerableConIA ..> PreguntaListadoDTO : devuelve
+GestorPreguntas ..> ServicioGeneracionIA : usa
+Candidato -- Cuestionario : responde
+ProveedorIAAdapter ..|> ServicioGeneracionIA
+ProveedorIAAdapter --> ProveedorIAExterno : adapta / delega
+(Candidato, Cuestionario ).. DetalleCuestionario
+PantallaAutenticacion ..> GestorAutenticacion
+PantallaGestionPuestos ..> GestorPuestos
+PantallaGestionCompetencias ..> GestorCompetencias
+PantallaAltaCompetencia ..> GestorCompetencias
+PantallaModifCompetencia ..> GestorCompetencias
+PantallaGestionFactores ..> GestorFactores
+PantallaAltaFactor ..> GestorFactores
+PantallaModifFactor ..> GestorFactores
+PantallaMenuPrincipal .. PantallaGestionPreguntas
+PantallaMenuPrincipal .. PantallaEvaluarCandidatos
+PantallaMenuPrincipal .. PantallaOrdenMerito
+PantallaGestionPreguntas ..> GestorPreguntas
+PantallaGestionPreguntas ..> GestorCompetencias : lista competencias >
+PantallaGestionPreguntas ..> GestorFactores : lista factores >
+PantallaAltaPregunta ..> GestorPreguntas
+PantallaAltaPregunta ..> GestorCompetencias : lista competencias >
+PantallaAltaPregunta ..> GestorFactores : lista factores >
+PantallaAltaPregunta ..> GestorOpcionesRespuesta : lista opciones e items >
+PantallaModifPregunta ..> GestorPreguntas
+PantallaAltaPuesto ..> GestorPuestos
+PantallaModifPuesto ..> GestorPuestos
+VentanaGenerarConIA ..> GestorPreguntas
+PantallaImportarCandidatos ..> GestorCandidatos
+PantallaEvaluarCandidatos ..> GestorEvaluaciones
+PantallaEvaluarCandidatos ..> GestorCandidatos
+PantallaCompletarCuestionario ..> GestorCuestionarios
+PantallaReporteComparativo ..> GestorReportes
+PantallaOrdenMerito ..> GestorReportes
+PantallaExportarResultados ..> GestorEvaluaciones
+PantallaGestionOpcionesRespuesta ..> GestorOpcionesRespuesta
+PantallaAltaOpcionRespuesta ..> GestorOpcionesRespuesta
+PantallaModifOpcionRespuesta ..> GestorOpcionesRespuesta
+PantallaGestionEmpresas ..> GestorEmpresas
+PantallaAltaEmpresa ..> GestorEmpresas
+PantallaModifEmpresa ..> GestorEmpresas
+PantallaGestionPuestos ..> GestorEmpresas
+PantallaAltaPuesto ..> GestorEmpresas
+PantallaModifPuesto ..> GestorEmpresas
+PantallaExportarResultados ..> GestorEmpresas
+PantallaReporteComparativo ..> GestorEmpresas
+PantallaOrdenMerito ..> GestorEmpresas : lista empresas >
+PantallaOrdenMerito ..> GestorPuestos : lista puestos >
+GestorEmpresas ..> EmpresaListadoDTO : genera
+GestorAutenticacion ..> Consultor
+GestorAutenticacion ..> IAutenticable : valida credenciales >
+GestorAutenticacion ..> Candidato
+GestorPuestos ..> Puesto
+GestorCompetencias ..> Competencia
+GestorFactores ..> Factor
+GestorPreguntas ..> Pregunta
+GestorPreguntas ..> PreguntaItemPonderacion : crea >
+GestorPreguntas ..> OpcionRespuesta : obtiene items >
+GestorPreguntas ..> MensajeSalidaDTO : genera
+GestorOpcionesRespuesta ..> OpcionRespuesta
+GestorCandidatos ..> Candidato
+GestorEvaluaciones ..> Evaluacion : crea >
+GestorEvaluaciones ..> Candidato
+GestorEvaluaciones ..> Puesto
+GestorEvaluaciones ..> Cuestionario
+GestorCuestionarios ..> Cuestionario : crea >
+GestorCuestionarios ..> Candidato : valida documento >
+GestorCuestionarios ..> RespuestaSeleccionada : registra >
+GestorCuestionarios ..> PreguntaCuestionario : crea >
+GestorCuestionarios ..> Competencia : lee factores >
+GestorCuestionarios ..> PuestoCompetencia : lee competencias del puesto >
+GestorCuestionarios ..> ResultadoFactor : crea >
+GestorCuestionarios ..> ResultadoCompetencia : crea >
+GestorAuditoria ..> IAuditable : obtiene datos de >
+GestorAuditoria ..> RegistroAuditoria : crea >
+GestorAuditoria ..> RegistroAuditoriaDAO : persiste mediante >
+GestorEmpresas ..> Empresa
+GestorReportes ..> ReporteComparativoDTO : genera
+GestorReportes ..> OrdenMeritoDTO : genera
+GestorReportes ..> ComparativoCompetenciaDTO : genera detalle
+GestorReportes ..> CandidatoOrdenMeritoDTO : genera detalle
+ReporteComparativoDTO ..> ComparativoCompetenciaDTO : contiene
+OrdenMeritoDTO ..> CandidatoOrdenMeritoDTO : contiene
+PantallaGestionPuestos .. PantallaAltaPuesto
+PantallaGestionPuestos .. PantallaModifPuesto
+PantallaGestionCompetencias .. PantallaAltaCompetencia
+PantallaGestionCompetencias .. PantallaModifCompetencia
+PantallaGestionFactores .. PantallaAltaFactor
+PantallaGestionFactores .. PantallaModifFactor
+PantallaGestionPreguntas .. PantallaAltaPregunta
+PantallaGestionPreguntas .. PantallaModifPregunta
+PantallaAltaPregunta .. VentanaGenerarConIA
+PantallaModifPregunta .. VentanaGenerarConIA
+PantallaGestionOpcionesRespuesta .. PantallaAltaOpcionRespuesta
+PantallaGestionOpcionesRespuesta .. PantallaModifOpcionRespuesta
+Puesto ..|> IAuditable
+Competencia ..|> IAuditable
+Factor ..|> IAuditable
+Pregunta ..|> IAuditable
+OpcionRespuesta ..|> IAuditable
+Empresa ..|> IAuditable
+GestorPreguntas ..|> IGenerableConIA
+Consultor ..|> IAutenticable
+Candidato ..|> IAutenticable
+GestorPuestos ..> PuestoListadoDTO : genera
+GestorPuestos ..> CompetenciaRequeridaDTO : genera
+GestorCompetencias ..> CompetenciaListadoDTO : genera
+GestorFactores ..> FactorListadoDTO : genera
+GestorPreguntas ..> PreguntaListadoDTO : genera
+GestorOpcionesRespuesta ..> OpcionRespuestaListadoDTO : genera
+GestorOpcionesRespuesta ..> OpcionRespuestaDetalleDTO : genera
+OpcionRespuestaDetalleDTO ..> ItemOpcionDTO : contiene
+GestorCandidatos ..> ResultadoImportacionDTO : genera
+GestorCandidatos ..> CandidatoEvaluadoDTO : genera
+GestorEvaluaciones ..> FuncionBusquedaDTO : genera
+GestorEvaluaciones ..> CandidatoEvaluadoDTO : genera
+GestorEvaluaciones ..> CompetenciaRequeridaDTO : genera
+GestorEvaluaciones ..> CandidatoClaveDTO : genera
+GestorEvaluaciones ..> ExportacionCandidatosExcelDTO : genera
+GestorEvaluaciones ..> ExportacionResultadosExcelDTO : genera
+GestorCuestionarios ..> CuestionarioSalidaDTO : genera
+GestorCuestionarios ..> BloqueCuestionarioDTO : genera
+GestorCuestionarios ..> PreguntaCuestionarioDTO : genera
+GestorCuestionarios ..> OpcionCuestionarioDTO : genera
+GestorCuestionarios ..> ResultadoCuestionarioDTO : genera
+GestorReportes ..> FuncionBusquedaDTO : genera
+GestorReportes ..> CandidatoEvaluadoDTO : genera
+GestorReportes ..> ComparativoCompetenciaDTO : genera
+GestorReportes ..> PuestoOrdenMeritoDTO : genera
+GestorReportes ..> EvaluacionListadoDTO : genera
+GestorReportes ..> Evaluacion : lee cantidad de candidatos >
+GestorReportes ..> Cuestionario : lee resultados >
+GestorReportes ..> Puesto : lee competencias requeridas >
+GestorReportes ..> CandidatoOrdenMeritoDTO : genera
+GestorEvaluaciones ..> ExportarClavesExcelEntradaDTO : recibe
+GestorEvaluaciones ..> ExportarResultadosExcelEntradaDTO : recibe
+ExportacionCandidatosExcelDTO ..> ArchivoExcelGeneradoDTO : contiene
+ExportacionCandidatosExcelDTO ..> CandidatoClaveDTO : contiene
+ExportacionResultadosExcelDTO ..> ArchivoExcelGeneradoDTO : contiene
+ExportacionResultadosExcelDTO ..> ResultadoExportacionDTO : contiene
+GestorAutenticacion ..> LoginConsultorEntradaDTO : recibe
+GestorAutenticacion ..> LoginCandidatoEntradaDTO : recibe
+GestorEmpresas ..> FiltroEmpresaEntradaDTO : recibe
+GestorEmpresas ..> EmpresaEntradaDTO : recibe
+GestorPuestos ..> FiltroPuestoEntradaDTO : recibe
+GestorPuestos ..> PuestoEntradaDTO : recibe
+GestorPuestos ..> CompetenciaPuestoEntradaDTO : recibe
+GestorCompetencias ..> FiltroCompetenciaEntradaDTO : recibe
+GestorCompetencias ..> CompetenciaEntradaDTO : recibe
+GestorFactores ..> FiltroFactorEntradaDTO : recibe
+GestorFactores ..> FactorEntradaDTO : recibe
+GestorPreguntas ..> FiltroPreguntaEntradaDTO : recibe
+GestorPreguntas ..> PreguntaEntradaDTO : recibe
+GestorPreguntas ..> PonderacionItemEntradaDTO : recibe
+GestorPreguntas ..> SolicitudGeneracionIAEntradaDTO : recibe
+GestorOpcionesRespuesta ..> OpcionRespuestaEntradaDTO : recibe
+GestorOpcionesRespuesta ..> ItemOpcionEntradaDTO : recibe
+GestorCandidatos ..> ImportarCandidatosEntradaDTO : recibe
+GestorCandidatos ..> FiltroCandidatoEntradaDTO : recibe
+GestorEvaluaciones ..> EvaluarCandidatosEntradaDTO : recibe
+GestorEvaluaciones ..> FiltroFuncionEntradaDTO : recibe
+GestorCuestionarios ..> GuardarBloqueCuestionarioEntradaDTO : recibe
+GestorCuestionarios ..> RespuestaPreguntaEntradaDTO : recibe
+GestorReportes ..> ReporteComparativoEntradaDTO : recibe
+GestorReportes ..> OrdenMeritoEntradaDTO : recibe
+GestorReportes ..> FiltroFuncionEntradaDTO : recibe
+CandidatoDAO ..|> IDAO : Candidato, int
+PuestoDAO ..|> IDAO : Puesto, String
+RegistroAuditoriaDAO ..|> IDAO : RegistroAuditoria, int
+EmpresaDAO ..|> IDAO : Empresa, int
+CompetenciaDAO ..|> IDAO : Competencia, String
+FactorDAO ..|> IDAO : Factor, String
+PreguntaDAO ..|> IDAO : Pregunta, String
+OpcionRespuestaDAO ..|> IDAO : OpcionRespuesta, String
+EvaluacionDAO ..|> IDAO : Evaluacion, int
+CuestionarioDAO ..|> IDAO : Cuestionario, String
+CandidatoDAO --> Candidato : persiste
+PuestoDAO --> Puesto : persiste
+EmpresaDAO --> Empresa : persiste
+CompetenciaDAO --> Competencia : persiste
+FactorDAO --> Factor : persiste
+PreguntaDAO --> Pregunta : persiste
+OpcionRespuestaDAO --> OpcionRespuesta : persiste
+EvaluacionDAO --> Evaluacion : persiste
+CuestionarioDAO --> Cuestionario : persiste
+RegistroAuditoriaDAO --> RegistroAuditoria : persiste
+GestorAutenticacion ..> GestorCandidatos : obtiene candidato >
+GestorAutenticacion ..> GestorCuestionarios : valida cuestionario >
+GestorPuestos ..> PuestoDAO : usa
+GestorPuestos ..> GestorEmpresas : obtiene empresa >
+GestorPuestos ..> GestorCompetencias : obtiene competencias >
+GestorEmpresas ..> EmpresaDAO : usa
+GestorCompetencias ..> CompetenciaDAO : usa
+GestorFactores ..> FactorDAO : usa
+GestorFactores ..> GestorCompetencias : obtiene competencia >
+GestorPreguntas ..> PreguntaDAO : usa
+GestorPreguntas ..> GestorFactores : obtiene factor >
+GestorPreguntas ..> GestorOpcionesRespuesta : obtiene opcion >
+GestorOpcionesRespuesta ..> OpcionRespuestaDAO : usa
+GestorCandidatos ..> CandidatoDAO : usa
+GestorEvaluaciones ..> EvaluacionDAO : usa
+GestorEvaluaciones ..> GestorCandidatos : obtiene candidatos >
+GestorEvaluaciones ..> GestorPuestos : obtiene puesto y competencias >
+GestorEvaluaciones ..> GestorCuestionarios : genera cuestionarios y claves >
+GestorEvaluaciones ..> GestorFactores : obtiene factores >
+GestorEvaluaciones ..> GestorPreguntas : cuenta preguntas >
+GestorCuestionarios ..> CuestionarioDAO : usa
+GestorCuestionarios ..> GestorPreguntas : obtiene preguntas >
+GestorReportes ..> GestorCuestionarios : obtiene cuestionarios >
+GestorReportes ..> GestorPuestos : obtiene puesto >
+GestorReportes ..> GestorEvaluaciones : obtiene evaluaciones >
+GestorPuestos ..> GestorAuditoria : audita >
+GestorCompetencias ..> GestorAuditoria : audita >
+GestorFactores ..> GestorAuditoria : audita >
+GestorPreguntas ..> GestorAuditoria : audita >
+GestorOpcionesRespuesta ..> GestorAuditoria : audita >
+GestorEmpresas ..> GestorAuditoria : audita >
+@enduml

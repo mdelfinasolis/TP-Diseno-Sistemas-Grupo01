@@ -1,0 +1,36 @@
+# Configuración solo para los tests automáticos: H2 en memoria en modo PostgreSQL,
+# con el mismo esquema y los mismos datos de prueba que la aplicación.
+spring:
+  datasource:
+    url: jdbc:h2:mem:gestion_evaluaciones;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:esquema_gestion_evaluaciones.sql
+      data-locations: classpath:data.sql
+      encoding: UTF-8
+  thymeleaf:
+    prefix: classpath:/boundary/templates/
+    suffix: .html
+
+app:
+  consultor:
+    nombre: "CONSULTOR, PRUEBA"
+  paginacion:
+    filas-por-pagina: 10
+  cuestionario:
+    tiempo-maximo-minutos: 20
+    preguntas-por-bloque: 4
+    cantidad-maxima-accesos: 3
+    dias-plazo-activo: 7
+    longitud-clave: 8
+    instrucciones:
+      encabezado: "No podrá volver atrás una vez que comience el cuestionario."
+      items: "Debe responder todas las preguntas.|Tiene un tiempo limitado."
+      pie: "Si sale antes de terminar, sus respuestas quedarán guardadas."

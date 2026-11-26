@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Cuestionario')}"></head>
+<body th:attr="data-alerta-auditiva=${alertaAuditiva}">
+<!-- CU026 - fin: completado con éxito (Imagen 21), tiempo máximo (1.A, Imagen 22),
+     tiempo de espera (1.B, Imagen 23) o cantidad máxima de accesos -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCuestionario('Cuestionario')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/cuestionario}">Ingreso</a> &gt; Realizar Cuestionario &gt; <strong>Cuestionario</strong>
+    </nav>
+
+    <section class="tarjeta-resultado" th:if="${exito}">
+        <svg class="icono-exito grande" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <path d="m7.5 12.3 3 3 6-6.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        <p class="mensaje-principal" th:text="${mensaje}">El cuestionario ha sido completado con éxito.</p>
+        <p class="nota">Sus respuestas han sido guardadas exitosamente.</p>
+        <a class="boton boton-primario" th:href="@{/cuestionario}" tabindex="7" autofocus>Aceptar</a>
+    </section>
+
+    <span class="estado" th:if="${exito}">Estado Cuestionario: <em th:text="${#strings.replace(estado, '_', ' ')}">COMPLETO</em></span>
+</main>
+
+<div th:unless="${exito}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoMensaje">
+    <div class="ventana-mensaje">
+        <a class="cerrar" th:href="@{/cuestionario}" aria-label="Cerrar" tabindex="8" autofocus>&times;</a>
+        <svg th:replace="~{fragmentos :: iconoAlerta}"></svg>
+        <p id="textoMensaje" class="mensaje-principal" th:text="${mensaje}">Tiempo máximo alcanzado.</p>
+        <p class="nota" th:text="'Estado Cuestionario: ' + ${#strings.replace(estado, '_', ' ')}">Estado Cuestionario: INCOMPLETO</p>
+    </div>
+</div>
+</body>
+</html>

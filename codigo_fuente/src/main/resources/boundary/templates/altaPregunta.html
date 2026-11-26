@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Dar de Alta Pregunta')}"></head>
+<body th:attr="data-alerta-auditiva=${alertaAuditiva}">
+<!-- CU021 - Dar de alta Pregunta (diseño: Imagen 7) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta('Dar de Alta Pregunta')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/}">Menú</a> &gt; <a th:href="@{/preguntas/criterios}">Preguntas</a> &gt;
+        <strong>Alta de Preguntas</strong>
+    </nav>
+    <p class="subtitulo-pantalla">Complete los datos para registrar una nueva pregunta en el sistema.</p>
+
+    <!-- 2.A / 2.B / 2.C: errores detallados, sin tapar campos ni botones -->
+    <div class="panel-errores" th:if="${errores != null and !#lists.isEmpty(errores)}" role="alert">
+        <strong>No se pudo registrar la pregunta:</strong>
+        <ul>
+            <li th:each="error : ${errores}" th:text="${error}">Error</li>
+        </ul>
+    </div>
+
+    <form id="formAlta" method="post" th:action="@{/preguntas/alta}" th:object="${pregunta}">
+        <div class="criterios">
+            <fieldset class="campo">
+                <legend>Competencia (*)</legend>
+                <select id="codigoCompetencia" name="codigoCompetencia" tabindex="1"
+                        th:attr="data-url-factores=@{/preguntas/alta/factores}">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="c : ${competencias}" th:value="${c.codigo}" th:text="${c.nombre}"
+                            th:selected="${c.codigo == codigoCompetencia}">COMPETENCIA</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Factor (*)</legend>
+                <select id="codigoFactor" th:field="*{codigoFactor}" tabindex="2" onchange="seleccionarFactor(this.value)">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="f : ${factores}" th:value="${f.codigo}" th:text="${f.nombre}">FACTOR</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo campo-ancho">
+                <legend>Nombre de pregunta (*)</legend>
+                <input type="text" id="nombre" th:field="*{nombre}" tabindex="3" autocomplete="off">
+            </fieldset>
+        </div>
+
+        <div class="dos-columnas">
+            <div>
+                <fieldset class="campo">
+                    <legend>Pregunta (*)</legend>
+                    <textarea id="enunciado" th:field="*{enunciado}" rows="3" tabindex="4"></textarea>
+                </fieldset>
+                <p class="ayuda-campo">Máximo de caracteres 500</p>
+                <fieldset class="campo">
+                    <legend>Descripción</legend>
+                    <textarea id="descripcion" th:field="*{descripcion}" rows="3" tabindex="5"></textarea>
+                </fieldset>
+                <p class="ayuda-campo">Máximo de caracteres 500</p>
+            </div>
+            <div class="caja-ia">
+                <button type="submit" class="boton boton-primario boton-grande" tabindex="6"
+                        th:formaction="@{/preguntas/alta/ia}">Generar con IA</button>
+                <p>Puede generar automáticamente una pregunta mediante IA.</p>
+            </div>
+        </div>
+
+        <h2 class="titulo-seccion">Opción de Respuesta (*)</h2>
+        <fieldset class="campo campo-opcion">
+            <legend>Opción de respuesta</legend>
+            <select id="nombreOpcionRespuesta" th:field="*{nombreOpcionRespuesta}" tabindex="7"
+                    th:attr="data-url-opcion=@{/preguntas/alta/opcion}">
+                <option value="">Seleccionar...</option>
+                <option th:each="o : ${opciones}" th:value="${o.nombre}" th:text="${o.nombre}">FRECUENCIA</option>
+            </select>
+        </fieldset>
+        <table class="grilla grilla-ponderaciones">
+            <thead>
+            <tr>
+                <th>Orden</th>
+                <th>Descripción</th>
+                <th class="accion">Ponderación</th>
+            </tr>
+            </thead>
+            <tbody id="itemsOpcion">
+            <th:block th:if="${opcionDetalle != null}">
+            <tr th:each="item, it : ${opcionDetalle.items}">
+                <td th:text="${item.orden}">1</td>
+                <td th:text="${item.descripcion}">MALO</td>
+                <td class="accion">
+                    <input type="hidden" th:name="|ponderaciones[${it.index}].ordenItem|" th:value="${item.orden}">
+                    <select class="ponderacion" th:name="|ponderaciones[${it.index}].ponderacion|" tabindex="7"
+                            th:aria-label="'Ponderación del ítem ' + ${item.orden}">
+                        <option th:each="n : ${#numbers.sequence(0, 10)}" th:value="${n}" th:text="${n}"
+                                th:selected="${ponderacionesPorOrden[item.orden] == n}">0</option>
+                    </select>
+                </td>
+            </tr>
+            </th:block>
+            <tr class="vacia" th:if="${opcionDetalle == null}">
+                <td colspan="3">Seleccione una opción de respuesta para cargar las ponderaciones.</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="nota">Las ponderaciones ingresadas deben sumar 10 puntos. <span id="sumaPonderaciones"></span></p>
+
+        <div class="acciones">
+            <a class="boton boton-secundario" th:href="@{/preguntas/alta/cancelar}" tabindex="9">Cancelar</a>
+            <button type="submit" class="boton boton-primario" tabindex="8" data-boton-defecto>Aceptar</button>
+        </div>
+    </form>
+
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/preguntas/alta/salir}" tabindex="10">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+
+<!-- Paso 3 y 4: pregunta creada, "¿Desea cargar otra?" SI / NO -->
+<div th:if="${mensajeExito != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoExito">
+    <div class="ventana-mensaje">
+        <svg class="icono-exito" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="m7.5 12.3 3 3 6-6.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        <p id="textoExito" th:text="${mensajeExito}">La Pregunta X se ha creado correctamente. ¿Desea cargar otra?</p>
+        <div class="acciones centradas">
+            <a class="boton boton-contorno" th:href="@{/preguntas/alta/no}" tabindex="2">NO</a>
+            <a class="boton boton-primario" th:href="@{/preguntas/alta/si}" tabindex="1" autofocus>SI</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Gestión de Evaluaciones</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <script th:src="@{/js/pantallas.js}" defer></script>
+</head>
+<body>
+
+<!-- Usuario logueado (arriba a la derecha) -->
+<div th:fragment="usuario" class="usuario">
+    <!-- Consultor (fijo hasta CU001) o, en CU026, el candidato que ingresó -->
+    <span th:text="${nombreUsuario != null ? nombreUsuario : nombreConsultor}">GODDIO, SERENA</span>
+    <svg class="avatar" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <circle cx="12" cy="9.5" r="3.6" fill="currentColor"/>
+        <path d="M5.2 18.6c1.6-2.6 4-3.9 6.8-3.9s5.2 1.3 6.8 3.9" fill="currentColor"/>
+    </svg>
+</div>
+
+<!-- Título con ícono "?" en círculo -->
+<h1 th:fragment="tituloPregunta(texto)" class="titulo">
+    <svg class="icono-titulo" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M9.2 9.3a2.9 2.9 0 1 1 4.1 2.6c-.8.4-1.3 1-1.3 1.9v.6" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="12" cy="17.3" r="1.1" fill="currentColor"/>
+    </svg>
+    <span th:text="${texto}">Título</span>
+</h1>
+
+<!-- Título con ícono de portapapeles (listado) -->
+<h1 th:fragment="tituloListado(texto)" class="titulo">
+    <svg class="icono-titulo" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="4" y="3.5" width="16" height="18" rx="2.5" fill="currentColor"/>
+        <rect x="8.5" y="1.8" width="7" height="4" rx="1.2" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M8 10h8M8 13.5h8M8 17h5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <span th:text="${texto}">Título</span>
+</h1>
+
+<!-- Título con ícono de cuestionario (CU026) -->
+<h1 th:fragment="tituloCuestionario(texto)" class="titulo">
+    <svg class="icono-titulo" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="7" y="2.5" width="14" height="14" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M3.5 7v13.5H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12.3 7.6a1.9 1.9 0 1 1 2.7 1.7c-.5.3-.9.7-.9 1.3v.4" fill="none" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="14.1" cy="13.2" r=".9" fill="currentColor"/>
+    </svg>
+    <span th:text="${texto}">Cuestionario</span>
+</h1>
+
+<!-- Título con ícono de personas (CU025) -->
+<h1 th:fragment="tituloCandidatos(texto)" class="titulo">
+    <svg class="icono-titulo" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="9" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M2.8 19.5c.8-3.3 3.2-5 6.2-5s5.4 1.7 6.2 5" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round"/>
+        <circle cx="17" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M16.5 14.6c2.4.1 4 1.5 4.7 4" fill="none" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round"/>
+    </svg>
+    <span th:text="${texto}">Evaluar Candidatos</span>
+</h1>
+
+<!-- Ícono de alerta (!) para ventanas de mensaje -->
+<svg th:fragment="iconoAlerta" class="icono-alerta" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M12 7v6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="16.8" r="1.2" fill="currentColor"/>
+</svg>
+
+<!-- Ruta de navegación: Menú > Pantalla -->
+<nav th:fragment="ruta(actual)" class="ruta">
+    <a th:href="@{/}">Menú</a> &gt; <strong th:text="${actual}">Pantalla</strong>
+</nav>
+
+<!-- Ícono Salir -->
+<svg th:fragment="iconoSalir" class="icono-boton" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10" fill="none" stroke="currentColor"
+          stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M14.5 8 19 12l-4.5 4M19 12H9" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+<!-- Ícono Buscar -->
+<svg th:fragment="iconoBuscar" class="icono-boton" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/>
+    <path d="m15 15 5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
+
+<!-- Pie de grilla: "Mostrando N resultados" + paginación "Página X de Y < n >" -->
+<div th:fragment="pieGrilla(total, pagina, totalPaginas, url, tab)" class="pie-grilla">
+    <span th:text="'Mostrando ' + ${total} + ' resultados'">Mostrando 0 resultados</span>
+    <span class="paginacion">
+        <span th:text="'Página ' + ${pagina} + ' de ' + ${totalPaginas}">Página 1 de 1</span>
+        <a class="pag-boton" th:classappend="${pagina <= 1} ? 'deshabilitado'"
+           th:href="${pagina > 1} ? @{${url}(pagina=${pagina - 1})} : null" th:tabindex="${tab}"
+           aria-label="Página anterior">&lsaquo;</a>
+        <span class="pag-actual" th:text="${pagina}">1</span>
+        <a class="pag-boton" th:classappend="${pagina >= totalPaginas} ? 'deshabilitado'"
+           th:href="${pagina < totalPaginas} ? @{${url}(pagina=${pagina + 1})} : null" th:tabindex="${tab}"
+           aria-label="Página siguiente">&rsaquo;</a>
+    </span>
+</div>
+
+</body>
+</html>

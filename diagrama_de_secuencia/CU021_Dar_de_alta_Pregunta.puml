@@ -1,0 +1,300 @@
+@startuml
+title CU021 - Dar de alta Pregunta
+
+autonumber
+
+actor Consultor
+
+boundary "PantallaGestionPreguntas" as PGP
+boundary "PantallaAltaPregunta" as Pantalla
+control "GestorCompetencias" as GComp
+control "GestorFactores" as GF
+control "GestorOpcionesRespuesta" as GOR
+control "GestorPreguntas" as GestorPreguntas
+
+database "CompetenciaDAO" as CompDAO
+database "FactorDAO" as FactorDAO
+database "OpcionRespuestaDAO" as OpcionDAO
+database "PreguntaDAO" as PreguntaDAO
+
+entity "OpcionRespuesta" as Opcion
+entity "Pregunta" as Pregunta
+entity "PreguntaItemPonderacion" as Ponderacion
+
+' =====================================================
+' INICIO (Corrección N8): mensaje que origina el CU
+' =====================================================
+
+Consultor -> PGP : nuevo()
+PGP -> Pantalla : abrir()
+activate Pantalla
+
+' =====================================================
+' PASO 1 - CARGA INICIAL DE LISTAS (Correcciones N7 y N8)
+' =====================================================
+
+Pantalla -> GComp : listarCompetencias()
+activate GComp
+GComp -> CompDAO : buscarTodos()
+activate CompDAO
+CompDAO --> GComp : List<Competencia>
+deactivate CompDAO
+GComp --> Pantalla : List<CompetenciaListadoDTO>
+deactivate GComp
+
+Pantalla -> GOR : listarOpciones()
+activate GOR
+GOR -> OpcionDAO : buscarTodos()
+activate OpcionDAO
+OpcionDAO --> GOR : List<OpcionRespuesta>
+deactivate OpcionDAO
+GOR --> Pantalla : List<OpcionRespuestaListadoDTO>
+deactivate GOR
+
+Pantalla --> Consultor : mostrar pantalla de alta
+
+note right of Pantalla
+Datos:
+- Competencia (lista de selección)
+- Factor (lista de selección)
+- Nombre de Pregunta
+- Pregunta
+- Descripción (opcional)
+- Opción de Respuesta (lista de selección)
+
+Botones:
+- Generar con IA
+- Aceptar
+- Cancelar
+end note
+
+' =====================================================
+' PASO 2 - CARGA DE DATOS (se vuelve aquí ante errores,
+' después de Generar con IA o al cargar otra pregunta)
+' =====================================================
+
+loop [hasta que el actor cancele o no desee cargar otra pregunta]
+
+    ' -------------------------------------------------
+    ' SELECCIÓN DE COMPETENCIA Y FACTOR (Correcciones N3 y N4)
+    ' -------------------------------------------------
+
+    Consultor -> Pantalla : seleccionarCompetencia(codigoCompetencia)
+
+    Pantalla -> GF : buscarFactores(filtros: FiltroFactorEntradaDTO)
+    activate GF
+    GF -> FactorDAO : buscarPorFiltros(codigoCompetencia, "")
+    activate FactorDAO
+    FactorDAO --> GF : List<Factor>
+    deactivate FactorDAO
+    GF --> Pantalla : List<FactorListadoDTO>
+    deactivate GF
+
+    Pantalla --> Consultor : mostrar factores de la competencia
+
+    Consultor -> Pantalla : seleccionarFactor(codigoFactor)
+
+    ' -------------------------------------------------
+    ' SELECCIÓN DE OPCIÓN DE RESPUESTA (Correcciones N3 y N4)
+    ' -------------------------------------------------
+
+    Consultor -> Pantalla : seleccionarOpcionRespuesta(nombreOpcion)
+
+    Pantalla -> GOR : obtenerDetalleOpcion(nombreOpcion)
+    activate GOR
+    GOR -> OpcionDAO : buscarPorId(nombreOpcion)
+    activate OpcionDAO
+    OpcionDAO --> GOR : OpcionRespuesta
+    deactivate OpcionDAO
+    GOR --> Pantalla : OpcionRespuestaDetalleDTO
+    deactivate GOR
+
+    note right of Pantalla
+    OpcionRespuestaDetalleDTO:
+    - nombre, descripcion
+    - items: List<ItemOpcionDTO> (orden, descripcion)
+    end note
+
+    Pantalla --> Consultor : mostrar grilla de ítems
+
+    note right of Pantalla
+    Grilla ordenada por orden:
+    - Orden (solo lectura)
+    - Descripción (solo lectura)
+    - Ponderación (editable)
+    end note
+
+    ' -------------------------------------------------
+    ' ACCIONES POSIBLES
+    ' -------------------------------------------------
+
+    alt [actor presiona Generar con IA]
+
+        Consultor -> Pantalla : generarConIA()
+
+        ref over Consultor, Pantalla, GestorPreguntas
+            CU033 - Generar pregunta con IA
+        end ref
+
+        Pantalla --> Consultor : mostrar datos generados
+
+        note right of Pantalla
+        Según CU033 se vuelve al paso 2:
+        el consultor revisa los datos generados
+        y luego presiona Aceptar o Cancelar.
+        end note
+
+    else [actor presiona Cancelar]
+
+        Consultor -> Pantalla : cancelar()
+        Pantalla --> Consultor : cerrar pantalla
+
+        note over Consultor, Pantalla
+        Finaliza CU021 y retorna al CU020.
+        end note
+
+    else [actor completa datos y presiona Aceptar]
+
+        Consultor -> Pantalla : aceptar()
+
+        Pantalla -> GestorPreguntas : crearPregunta(datos: PreguntaEntradaDTO)
+        activate GestorPreguntas
+
+        ' =============================================
+        ' VALIDACIONES (Corrección N5)
+        ' =============================================
+
+        GestorPreguntas -> GestorPreguntas : validarDatos(datos) : List<String>
+        GestorPreguntas -> GestorPreguntas : validarPonderaciones(datos.ponderaciones) : List<String>
+
+        note right of GestorPreguntas
+        Se acumulan todos los errores en una lista:
+        - validarDatos: obligatorios omitidos y
+          campos que superan la longitud máxima
+        - validarPonderaciones: valores negativos
+          o que no suman exactamente 10
+        end note
+
+        alt [la lista de errores no está vacía]
+
+            GestorPreguntas --> Pantalla : MensajeSalidaDTO(tipo = ERROR, errores)
+            Pantalla -> Pantalla : mostrarErrores(errores)
+            Pantalla -> Pantalla : emitirAlertaAuditiva()
+            Pantalla --> Consultor : errores de validación
+
+            note right of Pantalla
+            Se conservan los datos ingresados.
+            Se vuelve al paso 2.
+            end note
+
+        else [datos válidos]
+
+            ' =========================================
+            ' VALIDAR EXISTENCIA DE PREGUNTA
+            ' =========================================
+
+            GestorPreguntas -> PreguntaDAO : existeEnFactor(codigoFactor, nombre, enunciado)
+            activate PreguntaDAO
+            PreguntaDAO --> GestorPreguntas : boolean
+            deactivate PreguntaDAO
+
+            alt [la pregunta ya existe]
+
+                GestorPreguntas --> Pantalla : MensajeSalidaDTO(tipo = ERROR,\n"La pregunta ya existe en el factor")
+                Pantalla -> Pantalla : mostrarErrores(errores)
+                Pantalla -> Pantalla : emitirAlertaAuditiva()
+                Pantalla --> Consultor : validación no superada
+
+                note right of Pantalla
+                La validación contempla tanto el
+                nombre como el contenido de la pregunta.
+                Se vuelve al paso 2.
+                end note
+
+            else [la pregunta no existe]
+
+                ' =====================================
+                ' OBTENER ENTIDADES ASOCIADAS (Correcciones N3 y N6)
+                ' =====================================
+
+                GestorPreguntas -> GF : obtenerFactor(codigoFactor)
+                activate GF
+                GF -> FactorDAO : buscarPorId(codigoFactor)
+                activate FactorDAO
+                FactorDAO --> GF : Factor
+                deactivate FactorDAO
+                GF --> GestorPreguntas : Factor
+                deactivate GF
+
+                GestorPreguntas -> GOR : obtenerOpcionRespuesta(nombreOpcion)
+                activate GOR
+                GOR -> OpcionDAO : buscarPorId(nombreOpcion)
+                activate OpcionDAO
+                OpcionDAO --> GOR : OpcionRespuesta
+                deactivate OpcionDAO
+                GOR --> GestorPreguntas : OpcionRespuesta
+                deactivate GOR
+
+                ' =====================================
+                ' CREACIÓN DE LA PREGUNTA (Corrección N6)
+                ' =====================================
+
+                create Pregunta
+                GestorPreguntas -> Pregunta : <<create>>\nPregunta(nombre, enunciado, descripcion,\nfactor, opcionRespuesta)
+
+                loop [por cada PonderacionItemEntradaDTO de datos.ponderaciones]
+
+                    GestorPreguntas -> Opcion : getItem(ordenItem)
+                    activate Opcion
+                    Opcion --> GestorPreguntas : ItemOpcion
+                    deactivate Opcion
+
+                    create Ponderacion
+                    GestorPreguntas -> Ponderacion : <<create>>\nPreguntaItemPonderacion(pregunta, item, ponderacion)
+
+                    GestorPreguntas -> Pregunta : agregarPonderacion(preguntaItemPonderacion)
+
+                end
+
+                ' =====================================
+                ' PERSISTENCIA
+                ' =====================================
+
+                GestorPreguntas -> PreguntaDAO : guardar(pregunta)
+                activate PreguntaDAO
+                PreguntaDAO --> GestorPreguntas : void
+                deactivate PreguntaDAO
+
+                GestorPreguntas --> Pantalla : MensajeSalidaDTO(tipo = EXITO, descripcion)
+                deactivate GestorPreguntas
+
+                Pantalla --> Consultor : "La Pregunta " + nombrePregunta +\n" se ha creado correctamente.\n¿Desea cargar otra?"
+
+                ' =====================================
+                ' CARGAR OTRA PREGUNTA
+                ' =====================================
+
+                alt [actor selecciona SI]
+
+                    Consultor -> Pantalla : seleccionarSI()
+                    Pantalla -> Pantalla : limpiarFormulario()
+                    Pantalla --> Consultor : mostrar pantalla de alta vacía
+
+                    note right of Pantalla
+                    Se vuelve al paso 2.
+                    end note
+
+                else [actor selecciona NO]
+
+                    Consultor -> Pantalla : seleccionarNO()
+                    Pantalla --> Consultor : cerrar pantalla
+
+                end
+            end
+        end
+    end
+end
+
+deactivate Pantalla
+
+@enduml

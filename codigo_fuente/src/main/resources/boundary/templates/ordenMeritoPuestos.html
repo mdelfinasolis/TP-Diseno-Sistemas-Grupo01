@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Emitir Orden de Mérito')}"></head>
+<body>
+<!-- CU028 - Emitir Orden de Mérito, pantalla 1 (diseño: Imagen 29 y flujo alternativo 6.A) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta('Emitir Orden de Mérito')}"></h1>
+    <nav th:replace="~{fragmentos :: ruta('Orden de Méritos')}"></nav>
+
+    <form id="formFiltros" method="post" th:action="@{/orden-merito/buscar}" th:object="${filtros}">
+        <div class="criterios">
+            <fieldset class="campo">
+                <legend>Código</legend>
+                <input type="text" th:field="*{codigo}" maxlength="10" tabindex="1" autocomplete="off">
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Nombre del puesto</legend>
+                <select th:field="*{nombre}" tabindex="2">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="p : ${listaPuestos}" th:value="${p.nombre}" th:text="${p.nombre}">PUESTO</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Empresa</legend>
+                <select th:field="*{empresa}" tabindex="3">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="e : ${listaEmpresas}" th:value="${e.nombre}" th:text="${e.nombre}">EMPRESA</option>
+                </select>
+            </fieldset>
+        </div>
+        <p class="nota">* Ingresar al menos un criterio de búsqueda</p>
+
+        <div class="acciones">
+            <a class="boton boton-secundario" th:href="@{/orden-merito/cancelar}" tabindex="5">Cancelar</a>
+            <button type="submit" class="boton boton-primario" tabindex="4" data-boton-defecto>
+                <svg th:replace="~{fragmentos :: iconoBuscar}"></svg> Buscar
+            </button>
+        </div>
+    </form>
+
+    <form th:if="${mostrarGrilla}" id="formPuestos" method="post" th:action="@{/orden-merito/emitir}">
+        <section class="recuadro">
+            <h2>Búsqueda encontrada</h2>
+            <table class="grilla">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre del Puesto</th>
+                    <th>Empresa</th>
+                    <th>Candidatos</th>
+                    <th>Evaluaciones<br>Completadas</th>
+                    <th class="seleccion"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${puestos}">
+                    <td th:text="${p.codigo}">1515</td>
+                    <td th:text="${p.nombre}">PUESTO1</td>
+                    <td th:text="${p.empresa}">FOLDER IT</td>
+                    <td th:text="${p.cantidadCandidatos}">12</td>
+                    <td th:text="${p.evaluacionesCompletas}">10</td>
+                    <td class="seleccion">
+                        <input type="radio" name="codigoPuesto" th:value="${p.codigo}" tabindex="6"
+                               th:aria-label="'Seleccionar puesto ' + ${p.codigo}">
+                    </td>
+                </tr>
+                <tr class="vacia" th:if="${#lists.isEmpty(puestos)}">
+                    <td colspan="6">No se encontraron puestos para los criterios ingresados.</td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:replace="~{fragmentos :: pieGrilla(${totalResultados}, ${pagina}, ${totalPaginas}, '/orden-merito/puestos', 6)}"></div>
+        </section>
+
+        <div class="acciones">
+            <button type="submit" id="botonEmitirOrden" class="boton boton-primario" tabindex="7"
+                    data-boton-defecto disabled>Emitir el orden de mérito</button>
+        </div>
+    </form>
+</main>
+
+<!-- Flujo alternativo 6.A: "El puesto seleccionado no posee evaluaciones." -->
+<div th:if="${mensaje != null}" id="ventanaMensaje" class="velo" role="alertdialog" aria-modal="true"
+     aria-labelledby="textoMensaje">
+    <div class="ventana-mensaje">
+        <button type="button" class="cerrar" aria-label="Cerrar">&times;</button>
+        <svg class="icono-alerta" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 7v6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16.8" r="1.2" fill="currentColor"/>
+        </svg>
+        <p id="textoMensaje" th:text="${mensaje}">El puesto seleccionado no posee evaluaciones.</p>
+    </div>
+</div>
+</body>
+</html>

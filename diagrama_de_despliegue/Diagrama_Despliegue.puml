@@ -1,0 +1,74 @@
+@startuml
+title Entrega 6 - Diagrama de Despliegue
+
+skinparam shadowing false
+
+' =====================================================
+' CLIENTES
+' =====================================================
+
+node "PC del Consultor" <<device>> as PCConsultor {
+    node "Navegador web" <<executionEnvironment>> as BrowserConsultor
+}
+
+node "PC / Dispositivo del Candidato" <<device>> as PCCandidato {
+    node "Navegador web" <<executionEnvironment>> as BrowserCandidato
+}
+
+' =====================================================
+' SERVIDOR DE APLICACIONES
+' =====================================================
+
+node "Servidor de aplicaciones" <<device>> as AppServer {
+    node "Tomcat 10 / JVM 21" <<executionEnvironment>> as RuntimeApp {
+        artifact "gestion-evaluaciones.war" as AppArtifact
+        artifact "application.yml" as ConfigArtifact
+    }
+}
+
+' =====================================================
+' SERVIDOR DE BASE DE DATOS
+' =====================================================
+
+node "Servidor de BD" <<device>> as DBServer {
+    node "PostgreSQL 16" <<executionEnvironment>> as MotorBD {
+        artifact "esquema_gestion_evaluaciones.sql" as EsquemaBD
+    }
+}
+
+' =====================================================
+' SISTEMAS / DISPOSITIVOS EXTERNOS
+' =====================================================
+
+node "Servidor LDAP de la organización" <<device>> as LDAP
+
+node "Servicio externo de IA" <<externalSystem>> as IA
+
+node "Sistema de Gestión\nde Candidatos y CV" <<externalSystem>> as SistemaCV
+
+node "Impresora" <<device>> as Impresora
+
+' =====================================================
+' CAMINOS DE COMUNICACIÓN
+' =====================================================
+
+PCConsultor "1..*" -- "1" AppServer : <<HTTPS>>
+PCCandidato "1..*" -- "1" AppServer : <<HTTPS>>
+
+AppServer "1" -- "1" DBServer : <<JDBC>>
+AppServer "1" -- "1" LDAP : <<LDAP / LDAPS>>
+AppServer "1" -- "1" IA : <<HTTPS>>
+
+SistemaCV "1" -- "1..*" PCConsultor : <<exportación de archivo CSV>>
+
+note bottom of PCConsultor
+El Consultor obtiene el CSV del Sistema de Gestión
+de Candidatos y CV y lo sube al Servidor de
+aplicaciones por HTTPS (CU de importación).
+La impresión de reportes se hace desde el
+navegador del Consultor.
+end note
+
+PCConsultor "1" -- "0..1" Impresora : <<TCP/IP>>
+
+@enduml

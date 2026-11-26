@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Menú')}"></head>
+<body>
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta('Menú')}"></h1>
+    <nav class="ruta"><strong>Menú</strong></nav>
+
+    <div class="menu-opciones">
+        <a class="boton boton-contorno" th:href="@{/preguntas}" tabindex="1">Gestionar Preguntas</a>
+        <a class="boton boton-contorno" th:href="@{/evaluar}" tabindex="2">Evaluar Candidatos</a>
+        <a class="boton boton-contorno" th:href="@{/orden-merito}" tabindex="3">Emitir Orden de Mérito</a>
+    </div>
+
+    <!-- CU026 lo usa el Candidato: ingreso con tipo y número de documento y clave -->
+    <p class="nota">¿Es candidato? <a th:href="@{/cuestionario}" tabindex="4">Realizar cuestionario</a></p>
+</main>
+</body>
+</html>

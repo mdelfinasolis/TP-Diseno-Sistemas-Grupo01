@@ -1,0 +1,292 @@
+@startuml
+title Entrega 6 - Diagrama de Secuencia CU028 - Emitir Orden de Mérito
+
+autonumber
+
+actor Consultor
+boundary "PantallaOrdenMerito" as Pantalla
+control "GestorReportes" as GestorReportes
+control "GestorPuestos" as GP
+control "GestorEvaluaciones" as GE
+control "GestorCuestionarios" as GCu
+control "GestorEmpresas" as GEmp
+
+database "EmpresaDAO" as EmpresaDAO
+database "PuestoDAO" as PuestoDAO
+database "EvaluacionDAO" as EvaluacionDAO
+database "CuestionarioDAO" as CuestionarioDAO
+
+entity "Puesto" as Puesto
+entity "Evaluacion" as Ev
+entity "Cuestionario" as Cu
+entity "DetalleCuestionario" as Det
+
+' =====================================================
+' BÚSQUEDA DEL PUESTO
+' =====================================================
+
+Consultor -> Pantalla : seleccionarOpcionOrdenMerito()
+activate Pantalla
+
+' Carga de las listas desplegables de los filtros
+Pantalla -> GP : listarPuestos()
+activate GP
+GP -> PuestoDAO : buscarTodos()
+activate PuestoDAO
+PuestoDAO --> GP : List<Puesto>
+deactivate PuestoDAO
+GP --> Pantalla : List<PuestoListadoDTO>
+deactivate GP
+
+Pantalla -> GEmp : listarEmpresas()
+activate GEmp
+GEmp -> EmpresaDAO : buscarTodos()
+activate EmpresaDAO
+EmpresaDAO --> GEmp : List<Empresa>
+deactivate EmpresaDAO
+GEmp --> Pantalla : List<EmpresaListadoDTO>
+deactivate GEmp
+
+Pantalla --> Consultor : filtros: Código, Nombre del Puesto (lista), Empresa (lista)
+
+alt [actor presiona Cancelar]
+
+    Consultor -> Pantalla : cancelar()
+    Pantalla --> Consultor : fin del CU
+
+else [actor busca puestos]
+
+    Consultor -> Pantalla : ingresarFiltros(filtros)
+    Consultor -> Pantalla : buscar()
+
+    Pantalla -> GestorReportes : buscarPuestosOrdenMerito(\nfiltros: FiltroFuncionEntradaDTO)
+    activate GestorReportes
+
+    GestorReportes -> GP : buscarPuestos(filtros: FiltroPuestoEntradaDTO)
+    activate GP
+    GP -> PuestoDAO : buscarPorFiltros(codigo, nombre, empresa)
+    activate PuestoDAO
+    PuestoDAO --> GP : List<Puesto>
+    deactivate PuestoDAO
+    GP --> GestorReportes : List<PuestoListadoDTO>
+    deactivate GP
+
+    loop [por cada puesto encontrado]
+
+        GestorReportes -> GE : buscarPorPuesto(codigoPuesto)
+        activate GE
+        GE -> EvaluacionDAO : buscarPorPuesto(codigoPuesto)
+        activate EvaluacionDAO
+        EvaluacionDAO --> GE : List<Evaluacion>
+        deactivate EvaluacionDAO
+        GE --> GestorReportes : List<Evaluacion>
+        deactivate GE
+
+        loop [por cada evaluación]
+            GestorReportes -> GCu : buscarPorEvaluacion(idEvaluacion)
+            activate GCu
+            GCu -> CuestionarioDAO : buscarPorEvaluacion(idEvaluacion)
+            activate CuestionarioDAO
+            CuestionarioDAO --> GCu : List<Cuestionario>
+            deactivate CuestionarioDAO
+            GCu --> GestorReportes : List<Cuestionario>
+            deactivate GCu
+        end
+
+        note right of GestorReportes
+        Con los cuestionarios se calculan
+        cantidadCandidatos y evaluacionesCompletas
+        (estado COMPLETO en DetalleCuestionario).
+        end note
+
+    end
+
+    GestorReportes --> Pantalla : List<PuestoOrdenMeritoDTO>
+    deactivate GestorReportes
+
+    Pantalla --> Consultor : grilla de puestos
+
+    note right of Pantalla
+    Grilla:
+    - Código
+    - Nombre del puesto
+    - Empresa
+    - Candidatos
+    - Evaluaciones completas
+    end note
+
+    ' =================================================
+    ' SELECCIÓN DEL PUESTO
+    ' =================================================
+
+    Consultor -> Pantalla : emitirOrdenMerito(codigoPuesto)
+
+    Pantalla -> GestorReportes : listarEvaluacionesPuesto(codigoPuesto)
+    activate GestorReportes
+
+    GestorReportes -> GE : buscarPorPuesto(codigoPuesto)
+    activate GE
+    GE -> EvaluacionDAO : buscarPorPuesto(codigoPuesto)
+    activate EvaluacionDAO
+    EvaluacionDAO --> GE : List<Evaluacion>
+    deactivate EvaluacionDAO
+    GE --> GestorReportes : List<Evaluacion>
+    deactivate GE
+
+    loop [por cada evaluación]
+        GestorReportes -> Ev : getCantidadCandidatos()
+        activate Ev
+        Ev --> GestorReportes : int
+        deactivate Ev
+    end
+
+    note right of GestorReportes
+    La cantidad de candidatos sale de la
+    composición Evaluacion *-- Cuestionario.
+    end note
+
+    GestorReportes --> Pantalla : List<EvaluacionListadoDTO>
+    deactivate GestorReportes
+
+    alt [la lista de evaluaciones está vacía]
+
+        Pantalla -> Pantalla : mostrarMensaje("El puesto seleccionado no posee evaluaciones.")
+        Pantalla --> Consultor : vuelve a la grilla de puestos
+
+    else [el puesto posee evaluaciones]
+
+        Pantalla --> Consultor : evaluaciones del puesto + opción TODAS
+
+        Consultor -> Pantalla : seleccionarEvaluaciones()
+
+        ' =============================================
+        ' EMISIÓN
+        ' =============================================
+
+        Pantalla -> GestorReportes : emitirOrdenMerito(datos: OrdenMeritoEntradaDTO)
+        activate GestorReportes
+
+        GestorReportes -> GP : obtenerPuesto(codigoPuesto)
+        activate GP
+        GP -> PuestoDAO : buscarPorId(codigoPuesto)
+        activate PuestoDAO
+        PuestoDAO --> GP : Puesto
+        deactivate PuestoDAO
+        GP --> GestorReportes : Puesto
+        deactivate GP
+
+        GestorReportes -> Puesto : getCompetencias()
+        activate Puesto
+        Puesto --> GestorReportes : List<PuestoCompetencia>
+        deactivate Puesto
+
+        note right of GestorReportes
+        De PuestoCompetencia se obtienen
+        las ponderaciones mínimas exigidas
+        para cada competencia.
+        end note
+
+        alt [datos.todasLasEvaluaciones = true]
+
+            GestorReportes -> GE : buscarPorPuesto(codigoPuesto)
+            activate GE
+            GE -> EvaluacionDAO : buscarPorPuesto(codigoPuesto)
+            activate EvaluacionDAO
+            EvaluacionDAO --> GE : List<Evaluacion>
+            deactivate EvaluacionDAO
+            GE --> GestorReportes : List<Evaluacion>
+            deactivate GE
+
+        else [se seleccionaron evaluaciones específicas]
+
+            note right of GestorReportes
+            Se utilizan los idsEvaluaciones
+            indicados en OrdenMeritoEntradaDTO.
+            end note
+
+        end
+
+        loop [por cada evaluación seleccionada]
+
+            GestorReportes -> GCu : buscarPorEvaluacion(idEvaluacion)
+            activate GCu
+            GCu -> CuestionarioDAO : buscarPorEvaluacion(idEvaluacion)
+            activate CuestionarioDAO
+            CuestionarioDAO --> GCu : List<Cuestionario>
+            deactivate CuestionarioDAO
+            GCu --> GestorReportes : List<Cuestionario>
+            deactivate GCu
+
+            loop [por cada cuestionario]
+
+                GestorReportes -> Cu : getCandidato()
+                activate Cu
+                Cu --> GestorReportes : Candidato
+                deactivate Cu
+
+                GestorReportes -> Cu : getDetalle()
+                activate Cu
+                Cu --> GestorReportes : DetalleCuestionario
+                deactivate Cu
+
+                GestorReportes -> Det : getEstado()
+                activate Det
+                Det --> GestorReportes : ESTADOCUESTIONARIO
+                deactivate Det
+
+                opt [estado = COMPLETO]
+                    GestorReportes -> Cu : getResultadosCompetencia()
+                    activate Cu
+                    Cu --> GestorReportes : List<ResultadoCompetencia>
+                    deactivate Cu
+                end
+
+            end
+        end
+
+        note right of GestorReportes
+        COMPLETO + cumple TODOS los mínimos
+        -> integra el orden de mérito
+           (ordenado por puntaje obtenido).
+
+        COMPLETO + no cumple algún mínimo
+        -> se muestra fuera del orden de mérito.
+
+        Otros estados -> se agrupan según estado.
+
+        Solo los COMPLETOS muestran puntaje.
+        end note
+
+        GestorReportes --> Pantalla : OrdenMeritoDTO
+        deactivate GestorReportes
+
+        Pantalla -> Pantalla : mostrarOrdenMerito()
+        Pantalla --> Consultor : orden de mérito
+
+        ' =============================================
+        ' IMPRESIÓN
+        ' =============================================
+
+        opt [actor presiona Imprimir]
+
+            Consultor -> Pantalla : imprimir()
+
+            note right of Pantalla
+            La impresión la resuelve el navegador
+            del Consultor con el OrdenMeritoDTO ya
+            mostrado; la impresora está conectada a la
+            PC del Consultor (ver diagrama de despliegue).
+            end note
+
+            Pantalla --> Consultor : reporte enviado a la impresora
+
+        end
+
+        Pantalla --> Consultor : fin del CU
+
+    end
+end
+
+deactivate Pantalla
+
+@enduml

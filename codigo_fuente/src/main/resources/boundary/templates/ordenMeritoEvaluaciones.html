@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Emitir Orden de Mérito')}"></head>
+<body>
+<!-- CU028 - Emitir Orden de Mérito, pantalla 2: selección de evaluaciones (diseño: Imagen 30) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta('Emitir Orden de Mérito')}"></h1>
+    <nav th:replace="~{fragmentos :: ruta('Orden de Méritos')}"></nav>
+
+    <div class="resumen">
+        <div>Puesto seleccionado: <strong th:text="${puesto.nombre}">PROGRAMADOR</strong></div>
+        <div th:text="'Cantidad de candidatos: ' + ${puesto.cantidadCandidatos}">Cantidad de candidatos: 12</div>
+    </div>
+
+    <form id="formEvaluaciones" method="post" th:action="@{/orden-merito/evaluaciones}">
+        <input type="hidden" id="todasLasEvaluaciones" name="todasLasEvaluaciones" value="false">
+
+        <section class="recuadro">
+            <p class="subtitulo">Selecciona para qué evaluación/es emitir el orden de mérito:</p>
+            <table class="grilla">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Fecha de creación</th>
+                    <th>Candidatos</th>
+                    <th class="seleccion"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${evaluaciones}">
+                    <td th:text="${e.idEvaluacion}">1</td>
+                    <td th:text="${#temporals.format(e.fechaCreacion, 'dd/MM/yyyy')}">01/09/2026</td>
+                    <td th:text="${e.cantidadCandidatos}">5</td>
+                    <td class="seleccion">
+                        <input type="checkbox" name="idsEvaluaciones" th:value="${e.idEvaluacion}" tabindex="8"
+                               th:aria-label="'Seleccionar evaluación ' + ${e.idEvaluacion}">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="acciones izquierda">
+                <button type="button" id="botonSeleccionarTodas" class="boton boton-contorno" tabindex="9">
+                    Seleccionar todas
+                </button>
+            </div>
+        </section>
+
+        <div class="acciones">
+            <a class="boton boton-secundario" th:href="@{/orden-merito/puestos}" tabindex="11">Cancelar</a>
+            <button type="submit" id="botonEmitir" class="boton boton-primario" tabindex="10"
+                    data-boton-defecto disabled>Emitir</button>
+        </div>
+    </form>
+
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/orden-merito/cancelar}" tabindex="12">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+</body>
+</html>

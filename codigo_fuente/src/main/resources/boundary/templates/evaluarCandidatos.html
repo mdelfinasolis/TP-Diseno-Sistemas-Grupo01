@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Evaluar Candidatos')}"></head>
+<body>
+<!-- CU025 - Evaluar a Candidatos, pantalla 1 (diseño: Imágenes 10 y 11; alternativos 4.A y 6.A) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCandidatos('Evaluar Candidatos')}"></h1>
+    <nav th:replace="~{fragmentos :: ruta('Evaluar Candidatos')}"></nav>
+
+    <form id="formBuscar" method="post" th:action="@{/evaluar/buscar}" th:object="${filtros}">
+        <div class="criterios">
+            <fieldset class="campo">
+                <legend>Apellido</legend>
+                <input type="text" th:field="*{apellido}" maxlength="50" tabindex="1" autocomplete="off">
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Nombre</legend>
+                <input type="text" th:field="*{nombre}" maxlength="50" tabindex="2" autocomplete="off">
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Número de Candidato</legend>
+                <input type="text" th:field="*{nroCandidato}" maxlength="10" inputmode="numeric" tabindex="3"
+                       autocomplete="off">
+            </fieldset>
+        </div>
+        <p class="nota">* Ingresar al menos un criterio de búsqueda.</p>
+        <div class="acciones">
+            <button type="submit" class="boton boton-primario" tabindex="4" data-boton-defecto>
+                <svg th:replace="~{fragmentos :: iconoBuscar}"></svg> Buscar
+            </button>
+        </div>
+    </form>
+
+    <form th:if="${mostrarGrilla}" id="formAgregar" method="post" th:action="@{/evaluar/agregar}">
+        <section class="recuadro">
+            <h2>Candidatos encontrados</h2>
+            <table class="grilla">
+                <thead>
+                <tr>
+                    <th>Apellido</th>
+                    <th>Nombre</th>
+                    <th>Número de Candidato</th>
+                    <th class="seleccion">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${encontrados}">
+                    <td th:text="${c.apellido}">GÓMEZ</td>
+                    <td th:text="${c.nombre}">JUAN</td>
+                    <td th:text="${#numbers.formatInteger(c.nroCandidato, 6)}">000215</td>
+                    <td class="seleccion">
+                        <input type="checkbox" name="nrosCandidatos" th:value="${c.nroCandidato}" tabindex="5"
+                               th:aria-label="'Seleccionar candidato ' + ${c.nroCandidato}">
+                    </td>
+                </tr>
+                <tr class="vacia" th:if="${#lists.isEmpty(encontrados)}">
+                    <td colspan="4">No se encontraron candidatos para los criterios ingresados.</td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:replace="~{fragmentos :: pieGrilla(${totalResultados}, ${pagina}, ${totalPaginas}, '/evaluar/candidatos', 5)}"></div>
+        </section>
+        <div class="acciones separadas">
+            <span class="nota">Seleccionar al menos un candidato.</span>
+            <button type="submit" class="boton boton-secundario" tabindex="5" data-boton-defecto>+ Agregar</button>
+        </div>
+    </form>
+
+    <form id="formQuitar" method="post" th:action="@{/evaluar/quitar}">
+        <section class="recuadro">
+            <h2>Candidatos a evaluar</h2>
+            <table class="grilla">
+                <thead>
+                <tr>
+                    <th>Apellido</th>
+                    <th>Nombre</th>
+                    <th>Número de Candidato</th>
+                    <th class="seleccion"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${aEvaluar}">
+                    <td th:text="${c.apellido}">GODDIO</td>
+                    <td th:text="${c.nombre}">SERENA</td>
+                    <td th:text="${#numbers.formatInteger(c.nroCandidato, 6)}">186458</td>
+                    <td class="seleccion">
+                        <input type="checkbox" name="nrosCandidatos" th:value="${c.nroCandidato}" tabindex="6"
+                               th:aria-label="'Quitar candidato ' + ${c.nroCandidato}">
+                    </td>
+                </tr>
+                <tr class="vacia" th:if="${#lists.isEmpty(aEvaluar)}">
+                    <td colspan="4">Todavía no se agregaron candidatos.</td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="acciones">
+                <button type="submit" class="boton boton-secundario" tabindex="6" data-boton-defecto>- Quitar</button>
+            </div>
+        </section>
+    </form>
+
+    <form method="post" th:action="@{/evaluar/siguiente}" class="acciones">
+        <a class="boton boton-contorno" th:href="@{/evaluar/cancelar}" tabindex="10">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+        <button type="submit" class="boton boton-primario" tabindex="9">Siguiente</button>
+    </form>
+</main>
+
+<!-- 4.A: no se seleccionaron candidatos (y otros errores de la pantalla) -->
+<div th:if="${mensajeError != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoError">
+    <div class="ventana-mensaje">
+        <button type="button" class="cerrar" aria-label="Cerrar" tabindex="7">&times;</button>
+        <p class="titulo-error"><svg th:replace="~{fragmentos :: iconoAlerta}"></svg> ERROR</p>
+        <p id="textoError" th:text="${mensajeError}">Se debe seleccionar al menos un candidato.</p>
+    </div>
+</div>
+
+<!-- 6.A: candidatos con cuestionarios activos o en proceso -->
+<div th:if="${noEvaluables != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="tituloNoEvaluables">
+    <div class="ventana-mensaje ventana-ancha">
+        <button type="button" class="cerrar" aria-label="Cerrar" tabindex="7">&times;</button>
+        <p id="tituloNoEvaluables" class="titulo-error">
+            <svg th:replace="~{fragmentos :: iconoAlerta}"></svg> Existen cuestionarios activos o en proceso
+        </p>
+        <table class="grilla">
+            <thead><tr><th>Apellido</th><th>Nombre</th><th>Número de Candidato</th></tr></thead>
+            <tbody>
+            <tr th:each="c : ${noEvaluables}">
+                <td th:text="${c.apellido}">GODDIO</td>
+                <td th:text="${c.nombre}">SERENA</td>
+                <td th:text="${#numbers.formatInteger(c.nroCandidato, 6)}">186458</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="nota izquierda">No pueden ser evaluados nuevamente.</p>
+    </div>
+</div>
+</body>
+</html>

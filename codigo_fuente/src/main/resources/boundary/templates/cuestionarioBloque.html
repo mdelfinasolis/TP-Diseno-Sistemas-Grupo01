@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Cuestionario')}"></head>
+<body th:attr="data-alerta-auditiva=${alertaAuditiva}">
+<!-- CU026 - wizard de bloques (diseño: Imágenes 19 y 20; alternativo 8.A en Imagen 24) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCuestionario('Cuestionario')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/cuestionario}">Ingreso</a> &gt; Realizar Cuestionario &gt; <strong>Cuestionario</strong>
+    </nav>
+
+    <div class="acciones sin-margen">
+        <p class="tiempo"><span class="etiqueta-tiempo">⏱ Tiempo total:</span>
+            <span id="cuentaRegresiva" th:attr="data-limite=${limite}">00:00:00</span></p>
+    </div>
+
+    <form id="formBloque" method="post" th:action="${ultimoBloque} ? @{/cuestionario/finalizar} : @{/cuestionario/siguiente}">
+        <section class="recuadro">
+            <div class="encabezado-bloque">
+                <h2 th:text="'Bloque (' + ${bloque.nroBloque} + '/' + ${bloque.cantidadBloques} + ')'">Bloque (1/2)</h2>
+                <div class="barra-progreso" role="progressbar" th:attr="aria-valuenow=${progreso}"
+                     aria-valuemin="0" aria-valuemax="100">
+                    <div class="barra-avance" th:style="'width:' + ${progreso} + '%'"></div>
+                </div>
+            </div>
+
+            <ol class="preguntas">
+                <li th:each="p, it : ${preguntas}" class="pregunta" th:attr="data-numero=${it.count}">
+                    <label th:for="'respuesta_' + ${p.codigoPregunta}" th:text="${p.enunciado}">¿Pregunta 1?</label>
+                    <select th:id="'respuesta_' + ${p.codigoPregunta}" th:name="'respuesta_' + ${p.codigoPregunta}"
+                            class="respuesta" tabindex="3">
+                        <option value="">Seleccionar...</option>
+                        <option th:each="o : ${opciones[p.codigoPregunta]}" th:value="${o.orden}"
+                                th:text="${o.descripcion}"
+                                th:selected="${respuestas[p.codigoPregunta] == o.orden}">NUNCA</option>
+                    </select>
+                </li>
+            </ol>
+        </section>
+
+        <div class="pie-cuestionario">
+            <span class="estado">Estado Cuestionario: <em>EN PROCESO</em></span>
+            <div class="acciones">
+                <a class="boton boton-contorno" th:href="@{/cuestionario/cancelar}" tabindex="6">
+                    <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+                </a>
+                <button type="submit" class="boton boton-primario" th:tabindex="${ultimoBloque} ? 5 : 4"
+                        data-boton-defecto th:text="${ultimoBloque} ? 'Finalizar' : 'Siguiente'">Siguiente</button>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- 6.A: preguntas sin responder (lo arma el servidor o el navegador) -->
+<div id="ventanaSinResponder" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="tituloSinResponder"
+     th:classappend="${preguntasSinResponder == null} ? 'oculto'">
+    <div class="ventana-mensaje izquierda">
+        <button type="button" class="cerrar" aria-label="Cerrar" tabindex="8">&times;</button>
+        <div class="centrado"><svg th:replace="~{fragmentos :: iconoAlerta}"></svg></div>
+        <p id="tituloSinResponder">Las siguientes preguntas no han sido respondidas:</p>
+        <ul class="lista-mensaje" id="listaSinResponder">
+            <li th:each="p : ${preguntasSinResponder}" th:text="${p}">Pregunta 1</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

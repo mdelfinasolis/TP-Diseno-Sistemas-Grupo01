@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head(${tituloPantalla})}"></head>
+<body>
+<!-- CU021 / CU022 / CU023: se implementan en etapas posteriores -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta(${tituloPantalla})}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/}">Menú</a> &gt; <a th:href="@{${urlVolver}}">Preguntas</a> &gt;
+        <strong th:text="${tituloPantalla}">Pantalla</strong>
+    </nav>
+
+    <div class="en-construccion">
+        <h2>Pantalla en construcción</h2>
+        <p th:text="${casoDeUso}">CU0XX</p>
+        <p th:if="${preguntaSeleccionada != null}">
+            Pregunta seleccionada: <strong th:text="${preguntaSeleccionada}">P001</strong>
+        </p>
+    </div>
+
+    <div class="acciones">
+        <a class="boton boton-primario" th:href="@{${urlVolver}}" tabindex="1" autofocus>Volver</a>
+    </div>
+</main>
+</body>
+</html>

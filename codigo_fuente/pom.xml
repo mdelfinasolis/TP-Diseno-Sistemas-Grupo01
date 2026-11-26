@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.7</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>ar.edu.utn.frsf</groupId>
+    <artifactId>gestion-evaluaciones</artifactId>
+    <version>1.0.0</version>
+    <!-- Diagrama de despliegue: gestion-evaluaciones.war sobre Tomcat 10 / JVM 21 -->
+    <packaging>war</packaging>
+    <name>gestion-evaluaciones</name>
+    <description>TP Diseño de Sistemas - Etapa 7: CU020 Gestionar Preguntas y CU028 Emitir orden de mérito</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Solo se usa JPA/Hibernate (EntityManager). No se usan repositorios de Spring Data. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- CU025: exportación de candidatos y claves a Excel (.xls, formato HSSF) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+
+        <!-- Tomcat provisto por el servidor de aplicaciones al desplegar el .war -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Solo para los tests automáticos (modo de compatibilidad PostgreSQL) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>gestion-evaluaciones</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!--
+                      Windows informa la zona "America/Buenos_Aires" (alias antiguo) y el driver JDBC se la
+                      envía a PostgreSQL; la imagen postgres:16 ya no incluye ese alias y rechaza la conexión.
+                      Se usa el nombre vigente de la zona.
+                    -->
+                    <jvmArguments>-Duser.timezone=America/Argentina/Buenos_Aires</jvmArguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

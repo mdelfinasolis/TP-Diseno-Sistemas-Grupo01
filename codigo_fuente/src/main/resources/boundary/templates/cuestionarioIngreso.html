@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Realizar Cuestionario')}"></head>
+<body>
+<!-- CU001 3.A - Ingreso del Candidato para realizar el cuestionario (CU026) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCuestionario('Realizar Cuestionario')}"></h1>
+    <nav class="ruta"><strong>Ingreso</strong></nav>
+
+    <p class="subtitulo-pantalla">Ingrese su documento y la clave recibida para realizar el cuestionario.</p>
+
+    <form id="formIngreso" method="post" th:action="@{/cuestionario}" th:object="${datos}" autocomplete="off">
+        <div class="criterios">
+            <fieldset class="campo">
+                <legend>Tipo de documento (*)</legend>
+                <select th:field="*{tipoDocumento}" tabindex="1">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="t : ${tiposDocumento}" th:value="${t}" th:text="${t}">DNI</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Número de documento (*)</legend>
+                <input type="text" th:field="*{nroDocumento}" maxlength="20" tabindex="2">
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Clave (*)</legend>
+                <!-- La clave se visualiza con asteriscos (CU001, requerimientos especiales) -->
+                <input type="password" th:field="*{claveIngreso}" maxlength="20" tabindex="3">
+            </fieldset>
+        </div>
+        <div class="acciones">
+            <a class="boton boton-contorno" th:href="@{/}" tabindex="5">
+                <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+            </a>
+            <button type="submit" class="boton boton-primario" tabindex="4" data-boton-defecto>Ingresar</button>
+        </div>
+    </form>
+</main>
+
+<!-- CU001 3.A.2.2: datos no válidos; al cerrar, los campos quedan en blanco -->
+<div th:if="${mensaje != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoMensaje">
+    <div class="ventana-mensaje">
+        <button type="button" class="cerrar" aria-label="Cerrar">&times;</button>
+        <svg th:replace="~{fragmentos :: iconoAlerta}"></svg>
+        <p id="textoMensaje" th:text="${mensaje}">Los datos ingresados no son válidos o no existe un cuestionario para el Candidato</p>
+    </div>
+</div>
+</body>
+</html>

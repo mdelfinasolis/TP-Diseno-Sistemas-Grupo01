@@ -1,0 +1,136 @@
+@startuml
+title CU020 - Gestionar Preguntas
+
+autonumber
+
+actor Consultor
+boundary "PantallaGestionPreguntas" as Pantalla
+control "GestorCompetencias" as GComp
+control "GestorFactores" as GF
+control "GestorPreguntas" as GestorPreguntas
+database "CompetenciaDAO" as CompDAO
+database "FactorDAO" as FactorDAO
+database "PreguntaDAO" as PreguntaDAO
+
+Consultor -> Pantalla: seleccionarOpcionPreguntas()
+activate Pantalla
+
+' Carga de la lista desplegable de competencias
+Pantalla -> GComp: listarCompetencias()
+activate GComp
+GComp -> CompDAO: buscarTodos()
+activate CompDAO
+CompDAO --> GComp: List<Competencia>
+deactivate CompDAO
+GComp --> Pantalla: List<CompetenciaListadoDTO>
+deactivate GComp
+
+Pantalla --> Consultor: mostrar criterios de búsqueda\nCompetencia, Factor, Nombre Pregunta
+
+note over Consultor, Pantalla
+En cualquier momento el Consultor
+puede presionar Salir y finalizar el CU.
+end note
+
+' =====================================================
+' NUEVA PREGUNTA SIN BÚSQUEDA PREVIA
+' =====================================================
+
+alt [actor presiona Nuevo]
+
+    Consultor -> Pantalla: nuevo()
+
+    ref over Consultor, Pantalla
+        CU021 - Dar de alta Pregunta
+    end ref
+
+    Pantalla --> Consultor: volver a criterios de búsqueda
+
+else [actor realiza una búsqueda]
+
+    opt [actor selecciona una competencia]
+        Consultor -> Pantalla: seleccionarCompetencia(codigoCompetencia)
+        Pantalla -> GF: buscarFactores(filtros: FiltroFactorEntradaDTO)
+        activate GF
+        GF -> FactorDAO: buscarPorFiltros(codigoCompetencia, "")
+        activate FactorDAO
+        FactorDAO --> GF: List<Factor>
+        deactivate FactorDAO
+        GF --> Pantalla: List<FactorListadoDTO>
+        deactivate GF
+        Pantalla --> Consultor: lista de factores de la competencia
+    end
+
+    Consultor -> Pantalla: ingresarFiltros(filtros)
+    Consultor -> Pantalla: buscar()
+
+    Pantalla -> GestorPreguntas: buscarPreguntas(filtros: FiltroPreguntaEntradaDTO)
+    activate GestorPreguntas
+
+    GestorPreguntas -> PreguntaDAO: buscarPorFiltros(competencia, factor, nombre)
+    activate PreguntaDAO
+
+    PreguntaDAO --> GestorPreguntas: List<Pregunta>
+    deactivate PreguntaDAO
+
+    GestorPreguntas --> Pantalla: List<PreguntaListadoDTO>
+    deactivate GestorPreguntas
+
+    Pantalla --> Consultor: mostrar grilla\nCompetencia, Factor, Pregunta
+
+    ' =================================================
+    ' SELECCIÓN DE UNA PREGUNTA
+    ' =================================================
+
+    Consultor -> Pantalla: seleccionar(pregunta)
+
+    alt [actor presiona Modificar]
+
+        Consultor -> Pantalla: modificar()
+
+        ref over Consultor, Pantalla
+            CU022 - Modificar Pregunta
+        end ref
+
+        ' Actualización de grilla
+        Pantalla -> GestorPreguntas: buscarPreguntas(filtros)
+        activate GestorPreguntas
+
+        GestorPreguntas -> PreguntaDAO: buscarPorFiltros(competencia, factor, nombre)
+        activate PreguntaDAO
+        PreguntaDAO --> GestorPreguntas: List<Pregunta>
+        deactivate PreguntaDAO
+
+        GestorPreguntas --> Pantalla: List<PreguntaListadoDTO>
+        deactivate GestorPreguntas
+
+        Pantalla --> Consultor: actualizar grilla
+
+    else [actor presiona Eliminar]
+
+        Consultor -> Pantalla: eliminar()
+
+        ref over Consultor, Pantalla
+            CU023 - Dar de baja Pregunta
+        end ref
+
+        ' Actualización de grilla
+        Pantalla -> GestorPreguntas: buscarPreguntas(filtros)
+        activate GestorPreguntas
+
+        GestorPreguntas -> PreguntaDAO: buscarPorFiltros(competencia, factor, nombre)
+        activate PreguntaDAO
+        PreguntaDAO --> GestorPreguntas: List<Pregunta>
+        deactivate PreguntaDAO
+
+        GestorPreguntas --> Pantalla: List<PreguntaListadoDTO>
+        deactivate GestorPreguntas
+
+        Pantalla --> Consultor: actualizar grilla
+
+    end
+end
+
+deactivate Pantalla
+
+@enduml

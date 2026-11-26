@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Exportar Candidatos')}"></head>
+<body>
+<!-- CU025 - pasos 15 y 16: exportar candidatos y claves (diseño: Imagen 13, "Exportar Candidatos").
+     La carpeta destino la elige el navegador del Consultor (descarga). -->
+<main class="pantalla pantalla-dialogo">
+    <h1 class="titulo">
+        <svg class="icono-titulo" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="9" y="3" width="20" height="26" rx="2" fill="#21a366"/>
+            <rect x="19" y="3" width="10" height="26" rx="2" fill="#107c41"/>
+            <rect x="3" y="8" width="15" height="16" rx="2" fill="#185c37"/>
+            <path d="m6.5 12 4.5 4-4.5 4M15 12l-4.5 4 4.5 4" stroke="#fff" stroke-width="2" fill="none"/>
+        </svg>
+        <span class="titulo-gris">Exportar Candidatos</span>
+    </h1>
+
+    <form id="formExportar" method="post" th:action="@{/evaluar/exportar}" th:attr="data-url-fin=@{/evaluar/cancelar}">
+        <p>Seleccione la ubicación donde desea guardar el archivo:</p>
+        <div class="ruta-descarga">
+            <span>Ruta seleccionada:</span> carpeta de descargas del navegador
+        </div>
+        <label for="nombreArchivo" class="etiqueta">Nombre del archivo:</label>
+        <input type="text" id="nombreArchivo" name="nombreArchivo" class="campo-texto" th:value="${nombreArchivo}"
+               maxlength="150" tabindex="1">
+        <div class="acciones">
+            <a class="boton boton-secundario" th:href="@{/evaluar/cancelar(paso='exportacion')}" tabindex="3">Cancelar</a>
+            <button type="submit" class="boton boton-primario" tabindex="2" data-boton-defecto>Guardar</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

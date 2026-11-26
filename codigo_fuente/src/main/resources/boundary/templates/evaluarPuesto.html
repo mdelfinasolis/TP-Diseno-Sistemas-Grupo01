@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Evaluación de Candidatos')}"></head>
+<body>
+<!-- CU025 - Evaluar a Candidatos, pantalla 2: función o puesto (diseño: Imagen 11; alternativos 9.A y 10.A) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCandidatos('Evaluación de Candidatos')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/}">Menú</a> &gt; <a th:href="@{/evaluar/candidatos}">Evaluar Candidatos</a> &gt;
+        <strong>Evaluación de Candidatos</strong>
+    </nav>
+
+    <form id="formPuesto" method="post" th:action="@{/evaluar/puesto}">
+        <div class="criterios criterios-puesto">
+            <fieldset class="campo campo-ancho">
+                <legend>Función / Puesto</legend>
+                <select name="codigoPuesto" tabindex="1">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="f : ${funciones}" th:value="${f.codigo}"
+                            th:text="${f.codigo + ' - ' + f.nombre + ' (' + f.empresa + ')'}"
+                            th:selected="${puesto != null and puesto.codigo == f.codigo}">1515 - PROGRAMADOR (FOLDER IT)</option>
+                </select>
+            </fieldset>
+            <button type="submit" class="boton boton-primario" tabindex="3" data-boton-defecto>
+                <svg th:replace="~{fragmentos :: iconoBuscar}"></svg> Buscar
+            </button>
+        </div>
+
+        <div class="info-puesto" th:if="${puesto != null}">
+            <div>Puesto: <span th:text="${puesto.nombre}">CIBERSEGURIDAD</span></div>
+            <div>Empresa: <span th:text="${puesto.empresa}">MERCADO LIBRE</span></div>
+        </div>
+
+        <div class="fila-final">
+            <section class="recuadro recuadro-competencias">
+                <h2>Competencias requeridas</h2>
+                <table class="grilla">
+                    <thead><tr><th>Competencia</th><th>Ponderación</th></tr></thead>
+                    <tbody>
+                    <tr th:each="c : ${competencias}">
+                        <td th:text="${c.competencia}">COMP1</td>
+                        <td th:text="${c.ponderacionRequerida}">2</td>
+                    </tr>
+                    <tr class="vacia" th:if="${competencias == null}">
+                        <td colspan="2">Seleccione una función o puesto y presione Buscar.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+            <div class="acciones">
+                <button type="submit" class="boton boton-primario" tabindex="4"
+                        th:formaction="@{/evaluar/puesto/siguiente}">Siguiente</button>
+                <a class="boton boton-contorno" th:href="@{/evaluar/cancelar}" tabindex="5">
+                    <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+                </a>
+            </div>
+        </div>
+    </form>
+</main>
+
+<!-- 10.A: no se seleccionó la función o puesto -->
+<div th:if="${mensajeError != null}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoError">
+    <div class="ventana-mensaje">
+        <button type="button" class="cerrar" aria-label="Cerrar" tabindex="7">&times;</button>
+        <p class="titulo-error"><svg th:replace="~{fragmentos :: iconoAlerta}"></svg> ERROR</p>
+        <p id="textoError" th:text="${mensajeError}">Se debe seleccionar al menos una función o puesto.</p>
+    </div>
+</div>
+
+<!-- 9.A: competencias que no pueden ser evaluadas; Aceptar finaliza el CU y vuelve a la pantalla principal -->
+<div th:if="${competenciasNoEvaluables != null}" class="velo" role="alertdialog" aria-modal="true"
+     aria-labelledby="tituloCompetencias">
+    <div class="ventana-mensaje ventana-ancha izquierda">
+        <p id="tituloCompetencias" class="titulo-error">
+            <svg th:replace="~{fragmentos :: iconoAlerta}"></svg>
+            Las siguientes competencias no pueden ser evaluadas:
+        </p>
+        <ul class="lista-mensaje">
+            <li th:each="c : ${competenciasNoEvaluables}" th:text="${c}">COMP1</li>
+        </ul>
+        <div class="acciones">
+            <a class="boton boton-primario" th:href="@{/evaluar/cancelar}" tabindex="20" autofocus>Aceptar</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

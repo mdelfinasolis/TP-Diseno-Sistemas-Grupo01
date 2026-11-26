@@ -1,0 +1,7 @@
+﻿codigo_fuente/target/
+*.class
+*.log
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini

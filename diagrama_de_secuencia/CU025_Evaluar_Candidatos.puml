@@ -1,0 +1,348 @@
+@startuml
+title CU025 - Evaluar a Candidatos
+
+actor Consultor
+
+boundary "PantallaEvaluarCandidatos" as Pantalla
+control "GestorCandidatos" as GC
+control "GestorEvaluaciones" as GE
+control "GestorPuestos" as GP
+control "GestorFactores" as GF
+control "GestorPreguntas" as GPreg
+control "GestorCuestionarios" as GCu
+database "CandidatoDAO" as CDAO
+database "PuestoDAO" as PDAO
+database "EvaluacionDAO" as EDAO
+database "CuestionarioDAO" as CuDAO
+entity "Evaluacion" as E
+entity "Cuestionario" as Cu
+entity "DetalleCuestionario" as Det
+
+Consultor -> Pantalla : seleccionarOpcionEvaluarCandidatos()
+activate Pantalla
+
+note right of Pantalla
+Se muestran los filtros:
+- Apellido
+- Nombre
+- Nro. Candidato
+end note
+
+' =========================================================
+' BUSCAR CANDIDATOS
+' =========================================================
+
+Consultor -> Pantalla : buscarCandidatos()
+Pantalla -> GC : buscarCandidatos(filtros: FiltroCandidatoEntradaDTO)
+activate GC
+
+GC -> CDAO : buscarPorFiltros(apellido, nombre, nroCandidato)
+activate CDAO
+CDAO --> GC : List<Candidato>
+deactivate CDAO
+
+GC --> Pantalla : List<CandidatoEvaluadoDTO>
+deactivate GC
+
+Pantalla --> Consultor : mostrar candidatos encontrados
+
+' =========================================================
+' SELECCIONAR / AGREGAR CANDIDATOS
+' =========================================================
+
+Consultor -> Pantalla : seleccionarCandidatos()
+
+alt [no seleccionó candidatos]
+    Pantalla --> Consultor : mostrar mensaje\n"Se debe seleccionar al menos un candidato."
+
+else [seleccionó candidatos]
+
+    Consultor -> Pantalla : agregar()
+    Pantalla --> Consultor : actualizar grilla\n"Candidatos a evaluar"
+
+    opt [actor desea quitar candidatos]
+        Consultor -> Pantalla : quitar()
+        Pantalla --> Consultor : actualizar grilla
+    end
+
+    ' =====================================================
+    ' VALIDAR CUESTIONARIOS ACTIVOS (Corrección N9 + criterio general)
+    ' =====================================================
+
+    Consultor -> Pantalla : siguiente()
+
+    Pantalla -> GE : verificarCuestionariosActivos(nrosCandidatos: List<int>)
+    activate GE
+
+    GE -> GCu : buscarCuestionariosActivos(nrosCandidatos: List<int>)
+    activate GCu
+
+    GCu -> CuDAO : buscarActivosOEnProcesoPorCandidatos(nrosCandidatos)
+    activate CuDAO
+    CuDAO --> GCu : List<Cuestionario>
+    deactivate CuDAO
+
+    GCu --> GE : List<Cuestionario>
+    deactivate GCu
+
+    GE --> Pantalla : List<CandidatoEvaluadoDTO>\n(candidatos no evaluables)
+    deactivate GE
+
+    alt [la lista de candidatos no evaluables no está vacía]
+
+        Pantalla --> Consultor : mostrar candidatos que\nno pueden ser evaluados nuevamente
+
+        note right of Pantalla
+        Al cerrar el mensaje se vuelve a la
+        grilla "Candidatos a evaluar" (paso 4)
+        para poder quitarlos.
+        end note
+
+    else [ningún candidato posee cuestionario activo/en proceso]
+
+        ' =================================================
+        ' SELECCIONAR PUESTO
+        ' =================================================
+
+        Pantalla -> GE : buscarFunciones(filtros: FiltroFuncionEntradaDTO)
+        activate GE
+
+        GE -> GP : buscarPuestos(filtros: FiltroPuestoEntradaDTO)
+        activate GP
+        GP --> GE : List<PuestoListadoDTO>
+        deactivate GP
+
+        GE --> Pantalla : List<FuncionBusquedaDTO>
+        deactivate GE
+
+        Pantalla --> Consultor : mostrar pantalla de evaluación
+
+        Consultor -> Pantalla : seleccionarPuesto()
+
+        ' =================================================
+        ' COMPETENCIAS REQUERIDAS Y EVALUABILIDAD (Corrección N9)
+        ' =================================================
+
+        Pantalla -> GE : listarCompetenciasRequeridas(codigoPuesto)
+        activate GE
+
+        GE -> GP : listarCompetenciasRequeridas(codigoPuesto)
+        activate GP
+        GP --> GE : List<CompetenciaRequeridaDTO>
+        deactivate GP
+
+        loop [por cada CompetenciaRequeridaDTO]
+
+            GE -> GF : buscarFactores(filtros: FiltroFactorEntradaDTO)
+            activate GF
+            GF --> GE : List<FactorListadoDTO>
+            deactivate GF
+
+            GE -> GPreg : contarPreguntasPorFactor(codigosFactor: List<String>)
+            activate GPreg
+            GPreg --> GE : Map<String, int>
+            deactivate GPreg
+
+            GE -> GE : esEvaluable(factores, cantidades)
+
+            note right of GE
+            evaluable = al menos un factor de la
+            competencia tiene 2 o más preguntas.
+            Se asigna al campo evaluable de
+            CompetenciaRequeridaDTO.
+            end note
+
+        end
+
+        GE --> Pantalla : List<CompetenciaRequeridaDTO>
+        deactivate GE
+
+        Pantalla --> Consultor : mostrar competencias requeridas
+
+        alt [alguna CompetenciaRequeridaDTO tiene evaluable = false]
+
+            Pantalla --> Consultor : mostrar competencias\nno evaluables
+
+            note right of Pantalla
+            El actor presiona Aceptar: el CU
+            finaliza y vuelve a la pantalla principal.
+            Una competencia es evaluable si tiene AL MENOS
+            un factor con 2 o más preguntas (enunciado, 9.A).
+            end note
+
+        else [todas las competencias pueden evaluarse]
+
+            Consultor -> Pantalla : siguiente()
+
+            alt [no se seleccionó puesto]
+
+                Pantalla --> Consultor : mostrar mensaje\n"Se debe seleccionar al menos una función o puesto."
+
+            else [puesto seleccionado]
+
+                ' =========================================
+                ' GENERAR CLAVES (Corrección N2 + criterio general)
+                ' =========================================
+
+                Pantalla -> GE : generarClaves(nrosCandidatos: List<int>)
+                activate GE
+
+                loop [por cada candidato]
+                    GE -> GCu : generarClave()
+                    activate GCu
+                    GCu --> GE : String
+                    deactivate GCu
+                end
+
+                GE --> Pantalla : List<CandidatoClaveDTO>
+                deactivate GE
+
+                Pantalla --> Consultor : mostrar candidatos + claves
+
+                ' =========================================
+                ' FINALIZAR / CANCELAR
+                ' =========================================
+
+                alt [actor presiona Cancelar]
+
+                    Consultor -> Pantalla : cancelar()
+                    Pantalla --> Consultor : volver a pantalla principal
+
+                else [actor presiona Finalizar]
+
+                    Consultor -> Pantalla : finalizar()
+
+                    Pantalla -> GE : evaluarCandidatos(datos: EvaluarCandidatosEntradaDTO)
+                    activate GE
+
+                    note right of GE
+                    EvaluarCandidatosEntradaDTO:
+                    - codigoPuesto
+                    - candidatos: List<CandidatoClaveDTO>
+                      (nroCandidato + claveIngreso mostrada)
+                    - cantPreguntasPorBloque
+                    end note
+
+                    GE -> GCu : buscarCuestionariosActivos(nrosCandidatos: List<int>)
+                    activate GCu
+                    GCu -> CuDAO : buscarActivosOEnProcesoPorCandidatos(nrosCandidatos)
+                    activate CuDAO
+                    CuDAO --> GCu : List<Cuestionario>
+                    deactivate CuDAO
+                    GCu --> GE : List<Cuestionario>
+                    deactivate GCu
+
+                    note right of GE
+                    Se vuelve a verificar al confirmar: si otro
+                    consultor evaluó a un candidato mientras tanto,
+                    no se genera la evaluación (un solo
+                    cuestionario activo por candidato).
+                    end note
+
+                    GE -> GP : obtenerPuesto(codigoPuesto)
+                    activate GP
+                    GP -> PDAO : buscarPorId(codigoPuesto)
+                    activate PDAO
+                    PDAO --> GP : Puesto
+                    deactivate PDAO
+                    GP --> GE : Puesto
+                    deactivate GP
+
+                    create E
+                    GE -> E : <<create>>\nEvaluacion(puesto, fechaCreacion,\ncantPreguntasPorBloque)
+
+                    GE -> EDAO : guardar(evaluacion)
+                    activate EDAO
+                    EDAO --> GE : void
+                    deactivate EDAO
+
+                    ' =====================================
+                    ' GENERAR CUESTIONARIOS (Corrección N1)
+                    ' =====================================
+
+                    loop [por cada CandidatoClaveDTO en datos.candidatos]
+
+                        GE -> GC : obtenerCandidato(nroCandidato)
+                        activate GC
+                        GC -> CDAO : buscarPorId(nroCandidato)
+                        activate CDAO
+                        CDAO --> GC : Candidato
+                        deactivate CDAO
+                        GC --> GE : Candidato
+                        deactivate GC
+
+                        GE -> GCu : generarCuestionario(evaluacion, candidato, claveIngreso)
+                        activate GCu
+
+                        create Cu
+                        GCu -> Cu : <<create>>\nCuestionario(evaluacion, candidato, clave,\ntiempoMaximo)
+
+                        note right of Cu
+                        tiempoMaximo sale del repositorio
+                        de configuraciones (application.yml).
+                        end note
+
+                        create Det
+                        Cu -> Det : <<create>>\nDetalleCuestionario(ESTADOCUESTIONARIO.ACTIVO)
+
+                        GCu -> CuDAO : guardar(cuestionario)
+                        activate CuDAO
+                        CuDAO --> GCu : void
+                        deactivate CuDAO
+
+                        GCu --> GE : Cuestionario
+                        deactivate GCu
+                    end
+
+                    GE --> Pantalla : int (idEvaluacion)
+                    deactivate GE
+
+                    Pantalla --> Consultor : evaluación creada correctamente
+
+                    ' =====================================
+                    ' EXPORTACIÓN OPCIONAL
+                    ' =====================================
+
+                    opt [desea exportar candidatos y claves]
+
+                        Pantalla --> Consultor : solicitar carpeta destino
+
+                        alt [actor cancela selección de carpeta]
+
+                            Consultor -> Pantalla : cancelar()
+                            Pantalla --> Consultor : volver a opción de exportación
+
+                        else [actor selecciona carpeta]
+
+                            Pantalla -> GE : exportarCandidatosConClaves(datos: ExportarClavesExcelEntradaDTO)
+                            activate GE
+
+                            GE -> GCu : buscarPorEvaluacion(idEvaluacion)
+                            activate GCu
+                            GCu -> CuDAO : buscarPorEvaluacion(idEvaluacion)
+                            activate CuDAO
+                            CuDAO --> GCu : List<Cuestionario>
+                            deactivate CuDAO
+                            GCu --> GE : List<Cuestionario>
+                            deactivate GCu
+
+                            note right of GE
+                            Las claves exportadas se leen de los
+                            cuestionarios persistidos: son las mismas
+                            que se mostraron y guardaron.
+                            end note
+
+                            GE --> Pantalla : ExportacionCandidatosExcelDTO
+                            deactivate GE
+
+                            Pantalla --> Consultor : archivo Excel generado
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+deactivate Pantalla
+@enduml

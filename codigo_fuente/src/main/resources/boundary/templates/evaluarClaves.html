@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Evaluación de Candidatos')}"></head>
+<body>
+<!-- CU025 - Evaluar a Candidatos, pantalla 3: candidatos y claves (diseño: Imágenes 12 y 13) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloCandidatos('Evaluación de Candidatos')}"></h1>
+    <nav class="ruta">
+        <a th:href="@{/}">Menú</a> &gt; <a th:href="@{/evaluar/candidatos}">Evaluar Candidatos</a> &gt;
+        <strong>Evaluación de Candidatos</strong>
+    </nav>
+
+    <div class="info-puesto" th:if="${puesto != null}">
+        <div>Puesto: <span th:text="${puesto.nombre}">CIBERSEGURIDAD</span></div>
+        <div>Empresa: <span th:text="${puesto.empresa}">MERCADO LIBRE</span></div>
+    </div>
+
+    <section class="recuadro">
+        <h2>Candidatos a evaluar</h2>
+        <table class="grilla">
+            <thead>
+            <tr>
+                <th>Apellido</th>
+                <th>Nombre</th>
+                <th>Tipo de Documento</th>
+                <th>Número de Documento</th>
+                <th>Clave de Ingreso</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${claves}">
+                <td th:text="${c.apellido}">GODDIO</td>
+                <td th:text="${c.nombre}">SERENA</td>
+                <td th:text="${c.tipoDocumento}">DNI</td>
+                <td th:text="${c.nroDocumento}">46296828</td>
+                <td class="clave" th:text="${c.claveIngreso}">HNHS7SW8</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <form method="post" th:action="@{/evaluar/finalizar}" class="acciones">
+        <a class="boton boton-secundario" th:href="@{/evaluar/cancelar}" tabindex="2">Cancelar</a>
+        <button type="submit" class="boton boton-primario" tabindex="1" data-boton-defecto>Finalizar</button>
+    </form>
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/evaluar/cancelar}" tabindex="3">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+
+<!-- Paso 13: información guardada, ¿desea exportar? -->
+<div th:if="${evaluacionGuardada}" class="velo" role="alertdialog" aria-modal="true" aria-labelledby="textoExportar">
+    <div class="ventana-mensaje ventana-ancha izquierda">
+        <p class="subtitulo">Información guardada con éxito.</p>
+        <div class="fila-excel">
+            <svg class="icono-excel" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="9" y="3" width="20" height="26" rx="2" fill="#21a366"/>
+                <rect x="19" y="3" width="10" height="26" rx="2" fill="#107c41"/>
+                <rect x="3" y="8" width="15" height="16" rx="2" fill="#185c37"/>
+                <path d="m6.5 12 4.5 4-4.5 4M15 12l-4.5 4 4.5 4" stroke="#fff" stroke-width="2" fill="none"/>
+            </svg>
+            <div>
+                <p id="textoExportar"><strong>¿Desea exportar la lista de candidatos a un archivo Excel?</strong></p>
+                <p class="nota">Se generará un archivo con la información de los candidatos para que pueda
+                    utilizarse o compartirlo.</p>
+            </div>
+        </div>
+        <div class="acciones centradas">
+            <a class="boton boton-contorno" th:href="@{/evaluar/cancelar}" tabindex="24">No, finalizar</a>
+            <a class="boton boton-primario" th:href="@{/evaluar/exportar}" tabindex="25" autofocus>Exportar</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: head('Gestión de Preguntas')}"></head>
+<body>
+<!-- CU020 - Gestionar Preguntas (diseño: Imagen 6) -->
+<main class="pantalla">
+    <div th:replace="~{fragmentos :: usuario}"></div>
+    <h1 th:replace="~{fragmentos :: tituloPregunta('Gestión de Preguntas')}"></h1>
+    <nav th:replace="~{fragmentos :: ruta('Preguntas')}"></nav>
+
+    <form id="formCriterios" method="post" th:action="@{/preguntas/buscar}" th:object="${filtros}">
+        <div class="criterios">
+            <fieldset class="campo">
+                <legend>Competencia</legend>
+                <select id="codigoCompetencia" th:field="*{codigoCompetencia}" tabindex="1"
+                        th:attr="data-url-factores=@{/preguntas/factores}">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="c : ${competencias}" th:value="${c.codigo}" th:text="${c.nombre}">COMPETENCIA</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Factor</legend>
+                <select id="codigoFactor" th:field="*{codigoFactor}" tabindex="2">
+                    <option value="">Seleccionar...</option>
+                    <option th:each="f : ${factores}" th:value="${f.codigo}" th:text="${f.nombre}">FACTOR</option>
+                </select>
+            </fieldset>
+            <fieldset class="campo">
+                <legend>Nombre de Pregunta</legend>
+                <input type="text" id="nombre" th:field="*{nombre}" maxlength="100" tabindex="3" autocomplete="off">
+            </fieldset>
+        </div>
+        <p class="nota">* Ingresar al menos un criterio de búsqueda</p>
+
+        <div class="acciones">
+            <button type="submit" class="boton boton-secundario" tabindex="5"
+                    th:formaction="@{/preguntas/nuevo}" formmethod="get">+ Nuevo</button>
+            <button type="submit" class="boton boton-primario" tabindex="4" data-boton-defecto>
+                <svg th:replace="~{fragmentos :: iconoBuscar}"></svg> Buscar
+            </button>
+        </div>
+    </form>
+
+    <section class="recuadro" th:if="${mostrarGrilla}">
+        <h2>Listado de Preguntas</h2>
+        <table class="grilla">
+            <thead>
+            <tr>
+                <th>Competencia</th>
+                <th>Factor</th>
+                <th>Pregunta</th>
+                <th class="accion"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${preguntas}">
+                <td th:text="${p.competencia}">COMP1</td>
+                <td th:text="${p.factor}">FACTOR 1</td>
+                <td th:text="${p.pregunta}">¿PREGUNTA 1?</td>
+                <td class="accion">
+                    <a class="icono-accion editar" tabindex="7" title="Modificar"
+                       th:href="@{/preguntas/modificar(codigo=${p.codigo})}" th:aria-label="'Modificar ' + ${p.codigo}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 20h4L19 9l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="2.4"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                    <a class="icono-accion eliminar" tabindex="7" title="Eliminar"
+                       th:href="@{/preguntas/eliminar(codigo=${p.codigo})}" th:aria-label="'Eliminar ' + ${p.codigo}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none"
+                                  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </td>
+            </tr>
+            <tr class="vacia" th:if="${#lists.isEmpty(preguntas)}">
+                <td colspan="4">No se encontraron preguntas para los criterios ingresados.</td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:replace="~{fragmentos :: pieGrilla(${totalResultados}, ${pagina}, ${totalPaginas}, '/preguntas/grilla', 8)}"></div>
+    </section>
+
+    <div class="acciones">
+        <a class="boton boton-contorno" th:href="@{/preguntas/salir}" tabindex="9">
+            <svg th:replace="~{fragmentos :: iconoSalir}"></svg> Salir
+        </a>
+    </div>
+</main>
+</body>
+</html>
